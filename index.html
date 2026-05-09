@@ -2395,11 +2395,11 @@ function openModal(id) {
           }
         ],
         currentLocation: {
-          lat: 40.7128,
-          lng: -74.0060,
-          address: document.getElementById('s-pickup').value,
-          updatedAt: new Date().toISOString()
-        }
+  lat: 40.7128,
+  lng: -74.0060,
+  address: document.getElementById('r-address').value,  // ← FIXED
+  updatedAt: new Date().toISOString()
+}
       };
       
       // Save to localStorage (admin panel reads from here)
@@ -2504,7 +2504,7 @@ function openModal(id) {
         currentLocation: {
           lat: 40.7128,
           lng: -74.0060,
-          address: document.getElementById('r-pickup').value,
+          address: document.getElementById('r-address').value,
           updatedAt: new Date().toISOString()
         }
       };
