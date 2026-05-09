@@ -1,0 +1,2681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SendIt — Cash Delivery, Trusted Every Step</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Mapbox GL JS (for geocoder) -->
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
+<!-- Mapbox Geocoder -->
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.3/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.3/mapbox-gl-geocoder.css" />
+<style>
+  
+  
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+
+  :root {
+    --orange: #E85D04;
+    --orange-light: #F77F00;
+    --orange-dim: rgba(232,93,4,0.10);
+    --orange-border: rgba(232,93,4,0.22);
+    --white: #FFFFFF;
+    --gray-50: #F9F8F6;
+    --gray-100: #F0EDE8;
+    --gray-200: #E2DDD7;
+    --gray-300: #C8C2BA;
+    --gray-400: #9B9389;
+    --gray-600: #5E584F;
+    --gray-800: #2C2820;
+    --navy: #111827;
+    --green: #059669;
+    --green-dim: rgba(5,150,105,0.10);
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--white);
+    color: var(--gray-800);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--gray-100); }
+  ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 10px; }
+  ::selection { background: rgba(232,93,4,0.15); }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 200;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 0 24px;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 26px; font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--gray-800);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--orange); }
+  .nav-links {
+    display: flex; align-items: center; gap: 28px;
+  }
+  .nav-links a {
+    color: var(--gray-600); font-size: 13px; font-weight: 500;
+    text-decoration: none; letter-spacing: 0.1px; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--orange); }
+  .nav-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-ghost {
+    background: none; border: 1.5px solid var(--gray-200);
+    color: var(--gray-800); padding: 7px 16px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: var(--font-body); transition: all 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--orange); color: var(--orange); }
+  .btn-primary {
+    background: var(--orange); border: none;
+    color: #fff; padding: 8px 18px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: var(--font-body); transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--orange-light); }
+  .nav-hamburger {
+    display: none; flex-direction: column; gap: 4px;
+    background: none; border: none; cursor: pointer; padding: 4px;
+  }
+  .nav-hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: var(--gray-800); border-radius: 2px; transition: all 0.3s;
+  }
+
+  /* ── TRUST BAR ── */
+  .trust-bar {
+    background: var(--orange);
+    padding: 8px 24px;
+    display: flex; align-items: center; justify-content: center; gap: 32px;
+    flex-wrap: wrap; row-gap: 4px;
+    overflow: hidden;
+  }
+  .trust-item {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11.5px; font-weight: 600; color: #fff;
+    text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex; align-items: stretch;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background-image: var(--hero-img);
+    background-size: cover;
+    background-position: center 40%;
+    z-index: 0;
+  }
+  .hero-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      105deg,
+      rgba(255,255,255,0.97) 0%,
+      rgba(255,255,255,0.94) 38%,
+      rgba(255,255,255,0.60) 65%,
+      rgba(255,255,255,0.18) 100%
+    );
+  }
+  .hero-inner {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 1280px; margin: 0 auto;
+    padding: 60px 40px;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 40px;
+    align-items: center;
+  }
+
+  /* Left hero */
+  .hero-left { display: flex; flex-direction: column; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--orange-dim); border: 1px solid var(--orange-border);
+    color: var(--orange); font-size: 11px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 5px 12px; border-radius: 100px; margin-bottom: 22px;
+    width: fit-content;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; background: var(--orange);
+    border-radius: 50%; animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  .hero-heading {
+    font-family: var(--font-display);
+    font-size: clamp(38px, 5vw, 66px);
+    font-weight: 800; line-height: 1.0;
+    letter-spacing: -1.5px; color: var(--navy);
+    margin-bottom: 18px;
+  }
+  .hero-heading em { font-style: normal; color: var(--orange); }
+  .hero-sub {
+    color: var(--gray-600); font-size: 15.5px; line-height: 1.7;
+    max-width: 500px; margin-bottom: 36px; font-weight: 400;
+  }
+
+  /* Track form */
+  .track-label {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--gray-400); margin-bottom: 8px;
+  }
+  .track-form {
+    position: relative; max-width: 540px; margin-bottom: 10px;
+  }
+  .track-input {
+    width: 100%;
+    background: var(--white);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 16px 56px 16px 18px;
+    font-size: 14px; font-weight: 400;
+    color: var(--gray-800);
+    font-family: var(--font-mono);
+    letter-spacing: 0.8px;
+    outline: none;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    caret-color: var(--orange);
+  }
+  .track-input::placeholder {
+    color: var(--gray-300); font-family: var(--font-body);
+    letter-spacing: 0; font-size: 13.5px;
+  }
+  .track-input:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 4px rgba(232,93,4,0.10);
+  }
+  .track-btn {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    background: var(--orange); border: none; border-radius: 9px;
+    width: 40px; height: 40px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .track-btn:hover { background: var(--orange-light); }
+  .track-hint { font-size: 12px; color: var(--gray-400); }
+  .track-hint strong { color: var(--orange); font-weight: 500; cursor: pointer; }
+
+  .status-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 28px; }
+  .chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: 100px; padding: 5px 11px;
+    font-size: 11.5px; color: var(--gray-600);
+    box-shadow: var(--shadow-sm);
+  }
+  .chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── RIGHT CARD ── */
+  .hero-right {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    padding: 32px 28px;
+    box-shadow: var(--shadow-lg);
+    align-self: center;
+  }
+  .gs-eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.8px;
+    text-transform: uppercase; color: var(--gray-400); margin-bottom: 6px;
+  }
+  .gs-heading {
+    font-family: var(--font-display);
+    font-size: 24px; font-weight: 800; letter-spacing: -0.5px;
+    color: var(--navy); margin-bottom: 6px; line-height: 1.15;
+  }
+  .gs-desc { color: var(--gray-400); font-size: 13px; margin-bottom: 22px; }
+
+  .service-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+  .service-card {
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: all 0.18s;
+    text-decoration: none;
+  }
+  .service-card:hover {
+    border-color: var(--orange); background: var(--orange-dim);
+    transform: translateY(-1px); box-shadow: var(--shadow-sm);
+  }
+  .service-card.active {
+    border-color: var(--orange); background: var(--orange-dim);
+    box-shadow: var(--shadow-sm);
+  }
+  .sc-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    background: var(--white); border: 1px solid var(--gray-200);
+  }
+  .sc-info { flex: 1; min-width: 0; }
+  .sc-title { font-size: 13.5px; font-weight: 600; color: var(--navy); margin-bottom: 1px; }
+  .sc-desc { font-size: 11.5px; color: var(--gray-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sc-arrow { color: var(--gray-300); flex-shrink: 0; transition: color 0.2s; }
+  .service-card:hover .sc-arrow, .service-card.active .sc-arrow { color: var(--orange); }
+
+  .gs-divider {
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 0 18px; color: var(--gray-300); font-size: 11.5px;
+  }
+  .gs-divider::before, .gs-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--gray-200);
+  }
+
+  .gs-signup {
+    background: var(--orange); border-radius: var(--radius-md);
+    padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .gs-signup:hover { background: var(--orange-light); }
+  .gs-signup-text { flex: 1; }
+  .gs-signup-title { font-size: 13.5px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .gs-signup-sub { font-size: 11.5px; color: rgba(255,255,255,0.75); }
+  .gs-signup-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: rgba(255,255,255,0.18);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  /* ── STATS ── */
+  .stats-bar {
+    background: var(--navy);
+    padding: 36px 40px;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .stat-item {
+    padding: 16px 28px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  .stat-item:first-child { padding-left: 0; }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 42px; font-weight: 800; letter-spacing: -1px;
+    color: #fff; line-height: 1;
+  }
+  .stat-num span { color: var(--orange); }
+  .stat-label { color: rgba(255,255,255,0.45); font-size: 12.5px; margin-top: 5px; }
+
+  /* ── SECTION BASE ── */
+  .section { padding: 88px 40px; max-width: 1280px; margin: 0 auto; }
+  .section-full { padding: 88px 40px; background: var(--gray-50); }
+  .section-full .section-inner { max-width: 1280px; margin: 0 auto; }
+  .section-eyebrow {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--orange); margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 3vw, 44px);
+    font-weight: 800; letter-spacing: -1px; color: var(--navy); line-height: 1.08;
+    margin-bottom: 14px;
+  }
+  .section-sub { color: var(--gray-600); font-size: 15px; max-width: 500px; line-height: 1.7; }
+
+  /* ── HOW IT WORKS ── */
+  .how-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 24px; margin-top: 52px;
+  }
+  .how-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg); padding: 28px;
+    position: relative; overflow: hidden;
+    transition: all 0.2s; box-shadow: var(--shadow-sm);
+  }
+  .how-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .how-num {
+    font-family: var(--font-display);
+    font-size: 68px; font-weight: 800;
+    color: rgba(232,93,4,0.06);
+    position: absolute; top: 8px; right: 14px;
+    line-height: 1; pointer-events: none;
+  }
+  .how-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: var(--orange-dim); border: 1px solid var(--orange-border);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+  }
+  .how-title { font-size: 15.5px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+  .how-desc { font-size: 13.5px; color: var(--gray-600); line-height: 1.65; }
+
+  /* ── FEATURES ── */
+  .features-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 52px; margin-top: 52px; align-items: center;
+  }
+  .feature-img {
+    border-radius: var(--radius-xl); overflow: hidden; position: relative; height: 460px;
+    box-shadow: var(--shadow-lg);
+  }
+  .feature-img img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.88) saturate(0.95); }
+  .feature-img-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(232,93,4,0.1) 0%, transparent 60%);
+  }
+  .feature-card-float {
+    position: absolute; bottom: 20px; left: 20px; right: 20px;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md); padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: var(--shadow-md);
+  }
+  .fcf-icon {
+    width: 38px; height: 38px; background: var(--green);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .fcf-title { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .fcf-sub { font-size: 11.5px; color: var(--gray-400); }
+  .feature-list { list-style: none; display: flex; flex-direction: column; gap: 26px; }
+  .fl-item { display: flex; gap: 16px; align-items: flex-start; }
+  .fl-icon {
+    width: 42px; height: 42px; background: var(--orange-dim);
+    border: 1px solid var(--orange-border);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .fl-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .fl-desc { font-size: 13px; color: var(--gray-600); line-height: 1.65; }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 22px; margin-top: 52px;
+  }
+  .testi-card {
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg); padding: 26px;
+    box-shadow: var(--shadow-sm); transition: box-shadow 0.2s;
+  }
+  .testi-card:hover { box-shadow: var(--shadow-md); }
+  .testi-stars { display: flex; gap: 3px; margin-bottom: 14px; }
+  .testi-stars span { color: #F59E0B; font-size: 14px; }
+  .testi-quote {
+    font-size: 14px; line-height: 1.7; color: var(--gray-600);
+    margin-bottom: 18px; font-style: italic;
+  }
+  .testi-author { display: flex; align-items: center; gap: 12px; }
+  .testi-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+  }
+  .testi-name { font-size: 13.5px; font-weight: 700; color: var(--navy); }
+  .testi-meta { font-size: 11.5px; color: var(--gray-400); }
+
+  /* ── CTA ── */
+  .cta-section {
+    margin: 0 40px 80px;
+    background: var(--navy);
+    border-radius: var(--radius-xl);
+    padding: 60px 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 40px; position: relative; overflow: hidden;
+  }
+  .cta-bg-text {
+    position: absolute; right: -20px; top: -40px;
+    font-family: var(--font-display); font-size: 200px; font-weight: 800;
+    color: rgba(255,255,255,0.03); line-height: 1; pointer-events: none; user-select: none;
+  }
+  .cta-title {
+    font-family: var(--font-display); font-size: 42px; font-weight: 800;
+    letter-spacing: -1px; color: #fff; line-height: 1.08; margin-bottom: 10px;
+  }
+  .cta-title span { color: var(--orange); }
+  .cta-sub { color: rgba(255,255,255,0.55); font-size: 14.5px; max-width: 420px; }
+  .cta-actions { display: flex; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
+  .btn-cta-primary {
+    background: var(--orange); border: none; border-radius: var(--radius-sm);
+    color: #fff; padding: 13px 26px; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: var(--font-body); white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .btn-cta-primary:hover { background: var(--orange-light); }
+  .btn-cta-ghost {
+    background: none; border: 1.5px solid rgba(255,255,255,0.2); border-radius: var(--radius-sm);
+    color: rgba(255,255,255,0.75); padding: 13px 22px; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: var(--font-body); white-space: nowrap;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-cta-ghost:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--gray-50);
+    border-top: 1px solid var(--gray-200);
+    padding: 60px 40px 36px;
+  }
+  .footer-top {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 52px; margin-bottom: 44px;
+    max-width: 1280px; margin: 0 auto 44px;
+  }
+  .footer-logo { font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--navy); letter-spacing: -0.5px; margin-bottom: 12px; }
+  .footer-logo span { color: var(--orange); }
+  .footer-tagline { font-size: 13px; color: var(--gray-400); line-height: 1.7; max-width: 260px; margin-bottom: 20px; }
+  .footer-app-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .app-btn {
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm); padding: 7px 12px;
+    display: flex; align-items: center; gap: 7px;
+    color: var(--gray-800); font-size: 11.5px; font-weight: 600;
+    cursor: pointer; transition: border-color 0.2s; box-shadow: var(--shadow-sm);
+  }
+  .app-btn:hover { border-color: var(--orange); }
+  .footer-col-title { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gray-300); margin-bottom: 16px; }
+  .footer-col-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col-links a { color: var(--gray-600); font-size: 13px; text-decoration: none; transition: color 0.2s; }
+  .footer-col-links a:hover { color: var(--orange); }
+  .footer-bottom {
+    max-width: 1280px; margin: 0 auto;
+    border-top: 1px solid var(--gray-200);
+    padding-top: 20px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .footer-copy { font-size: 12px; color: var(--gray-400); }
+  .footer-legal { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-legal a { font-size: 12px; color: var(--gray-400); text-decoration: none; transition: color 0.2s; }
+  .footer-legal a:hover { color: var(--gray-600); }
+
+  /* ── MOBILE NAV MENU ── */
+  .mobile-menu {
+    display: none;
+    position: fixed; inset: 60px 0 0 0;
+    background: var(--white);
+    z-index: 190; padding: 24px;
+    flex-direction: column; gap: 18px;
+    border-top: 1px solid var(--gray-200);
+    animation: slideDown 0.22s ease;
+  }
+  .mobile-menu.open { display: flex; }
+  @keyframes slideDown { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }
+  .mobile-menu a {
+    color: var(--gray-800); font-size: 15px; font-weight: 500;
+    text-decoration: none; padding: 10px 0;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .mobile-menu .btn-primary { margin-top: 6px; text-align: center; }
+
+  /* ─────────────────── MOBILE RESPONSIVE ─────────────────── */
+  @media (max-width: 1024px) {
+    .hero-inner { grid-template-columns: 1fr; padding: 40px 24px 52px; gap: 32px; }
+    .hero-bg::after {
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.97) 0%,
+        rgba(255,255,255,0.96) 70%,
+        rgba(255,255,255,0.80) 100%
+      );
+    }
+    .hero-right { max-width: 520px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .feature-img { height: 280px; }
+    .how-grid { grid-template-columns: 1fr; }
+    .testimonials-grid { grid-template-columns: 1fr 1fr; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 0; }
+    .stat-item:nth-child(2) { border-right: none; }
+    .stat-item:nth-child(3) { border-top: 1px solid rgba(255,255,255,0.08); border-right: 1px solid rgba(255,255,255,0.08); }
+    .stat-item:nth-child(4) { border-top: 1px solid rgba(255,255,255,0.08); border-right: none; }
+    .cta-section { flex-direction: column; text-align: center; padding: 44px 32px; margin: 0 24px 60px; }
+    .cta-sub { max-width: 100%; }
+    .cta-actions { justify-content: center; }
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+    .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
+  }
+
+  /* ═══════════════════════════════════════════
+     MODALS
+  ═══════════════════════════════════════════ */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(17,24,39,0.55);
+    backdrop-filter: blur(6px);
+    align-items: flex-start; justify-content: center;
+    padding: 20px 16px 40px;
+    overflow-y: auto;
+    animation: fadeOverlay 0.22s ease;
+  }
+  .modal-overlay.open { display: flex; }
+  @keyframes fadeOverlay { from{opacity:0} to{opacity:1} }
+
+  .modal {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    width: 100%; max-width: 720px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+    animation: slideModal 0.28s cubic-bezier(.22,.68,0,1.2);
+    position: relative; overflow: hidden;
+    margin: auto;
+  }
+  @keyframes slideModal {
+    from { opacity:0; transform: translateY(28px) scale(0.97); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+  }
+
+  /* Modal header */
+  .modal-header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid var(--gray-200);
+    position: sticky; top: 0; background: var(--white); z-index: 2;
+  }
+  .modal-header-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--orange-dim); border: 1px solid var(--orange-border);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .modal-header-text { flex: 1; }
+  .modal-title {
+    font-family: var(--font-display);
+    font-size: 20px; font-weight: 800; letter-spacing: -0.4px; color: var(--navy);
+  }
+  .modal-subtitle { font-size: 12.5px; color: var(--gray-400); margin-top: 2px; }
+  .modal-close {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--gray-100); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s; color: var(--gray-600);
+    flex-shrink: 0;
+  }
+  .modal-close:hover { background: var(--gray-200); }
+
+  /* Modal body */
+  .modal-body { padding: 28px; }
+
+  /* Section headers */
+  .form-section-label {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+    text-transform: uppercase; color: var(--orange);
+    margin-bottom: 18px; margin-top: 28px;
+  }
+  .form-section-label:first-child { margin-top: 0; }
+  .form-section-label::before {
+    content: ''; display: block; width: 4px; height: 16px;
+    background: var(--orange); border-radius: 2px; flex-shrink: 0;
+  }
+  .form-section-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--gray-200);
+  }
+
+  /* Form grid */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid .span-2 { grid-column: 1 / -1; }
+
+  /* Form fields */
+  .form-field { display: flex; flex-direction: column; gap: 5px; }
+  .form-label {
+    font-size: 12px; font-weight: 600; color: var(--gray-600); letter-spacing: 0.1px;
+  }
+  .form-label span { color: var(--orange); margin-left: 2px; }
+  .form-input, .form-select, .form-textarea {
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 10px 13px;
+    font-size: 13.5px; color: var(--gray-800);
+    font-family: var(--font-body);
+    outline: none;
+    transition: border-color 0.18s, box-shadow 0.18s;
+    width: 100%;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(232,93,4,0.10);
+    background: var(--white);
+  }
+  .form-input::placeholder { color: var(--gray-300); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-select { cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9389' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 34px;
+  }
+
+  /* Input with prefix */
+  .input-prefix-wrap { position: relative; }
+  .input-prefix {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    display: flex; align-items: center; padding: 0 12px;
+    font-size: 13px; font-weight: 600; color: var(--gray-400);
+    border-right: 1.5px solid var(--gray-200);
+    pointer-events: none; background: var(--gray-100);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  }
+  .input-prefix-wrap .form-input { padding-left: 44px; }
+
+  /* Checkboxes */
+  .form-checks { display: flex; gap: 14px; flex-wrap: wrap; }
+  .form-check {
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; user-select: none;
+    background: var(--gray-50); border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm); padding: 9px 14px;
+    font-size: 13px; color: var(--gray-600); font-weight: 500;
+    transition: all 0.15s;
+  }
+  .form-check input[type=checkbox] { display: none; }
+  .form-check-box {
+    width: 17px; height: 17px; border-radius: 4px;
+    border: 1.5px solid var(--gray-300); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .form-check input:checked ~ .form-check-box {
+    background: var(--orange); border-color: var(--orange);
+  }
+  .form-check input:checked ~ .form-check-box::after {
+    content: ''; width: 5px; height: 9px; border: 2px solid #fff;
+    border-top: none; border-left: none; transform: rotate(42deg) translateY(-1px);
+    display: block;
+  }
+  .form-check:has(input:checked) {
+    border-color: var(--orange); background: var(--orange-dim); color: var(--orange);
+  }
+
+  /* Upload area */
+  .upload-area {
+    border: 2px dashed var(--gray-200); border-radius: var(--radius-md);
+    padding: 24px; text-align: center; cursor: pointer;
+    transition: all 0.2s; background: var(--gray-50);
+  }
+  .upload-area:hover { border-color: var(--orange); background: var(--orange-dim); }
+  .upload-area.has-file { border-color: var(--green); background: var(--green-dim); }
+  .upload-area input[type=file] { display: none; }
+  .upload-icon { margin-bottom: 8px; }
+  .upload-title { font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 3px; }
+  .upload-hint { font-size: 11.5px; color: var(--gray-400); }
+  .upload-preview {
+    display: none; align-items: center; gap: 10px; text-align: left;
+  }
+  .upload-preview-img {
+    width: 44px; height: 44px; border-radius: 8px; object-fit: cover;
+    border: 1px solid var(--gray-200);
+  }
+  .upload-preview-name { font-size: 12.5px; font-weight: 600; color: var(--green); }
+  .upload-preview-size { font-size: 11px; color: var(--gray-400); }
+  .upload-area.has-file .upload-default { display: none; }
+  .upload-area.has-file .upload-preview { display: flex; }
+  .upload-area:not(.has-file) .upload-default { display: block; }
+  .upload-area:not(.has-file) .upload-preview { display: none; }
+
+  /* Same info checkbox */
+  .same-info-box {
+    background: var(--gray-50); border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-md); padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; transition: all 0.15s; margin-bottom: 18px;
+    user-select: none;
+  }
+  .same-info-box:hover { border-color: var(--orange); }
+  .same-info-box.checked { border-color: var(--orange); background: var(--orange-dim); }
+  .same-info-box input { display: none; }
+  .same-info-check {
+    width: 20px; height: 20px; border-radius: 5px;
+    border: 1.5px solid var(--gray-300); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .same-info-box.checked .same-info-check {
+    background: var(--orange); border-color: var(--orange);
+  }
+  .same-info-box.checked .same-info-check::after {
+    content: ''; width: 6px; height: 10px; border: 2px solid #fff;
+    border-top: none; border-left: none; transform: rotate(42deg) translateY(-1px);
+    display: block;
+  }
+  .same-info-label { flex: 1; }
+  .same-info-title { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .same-info-sub { font-size: 11.5px; color: var(--gray-400); }
+
+  /* Cash conditional */
+  .cash-fields { display: none; }
+  .cash-fields.show { display: contents; }
+
+  /* Modal footer */
+  .modal-footer {
+    padding: 20px 28px 28px;
+    border-top: 1px solid var(--gray-200);
+    display: flex; align-items: center; gap: 12px;
+    justify-content: flex-end;
+  }
+  .btn-modal-cancel {
+    background: var(--gray-100); border: none;
+    color: var(--gray-600); padding: 11px 22px; border-radius: var(--radius-sm);
+    font-size: 13.5px; font-weight: 600; cursor: pointer;
+    font-family: var(--font-body); transition: background 0.15s;
+  }
+  .btn-modal-cancel:hover { background: var(--gray-200); }
+  .btn-generate {
+    background: var(--orange); border: none; color: #fff;
+    padding: 11px 24px; border-radius: var(--radius-sm);
+    font-size: 13.5px; font-weight: 700; cursor: pointer;
+    font-family: var(--font-body); transition: background 0.18s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .btn-generate:hover { background: var(--orange-light); }
+
+  /* Success screen */
+  .modal-success {
+    display: none; flex-direction: column; align-items: center;
+    padding: 52px 28px; text-align: center;
+  }
+  .modal-success.show { display: flex; }
+  .success-ring {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: var(--green-dim); border: 2px solid var(--green);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 22px; animation: pop 0.4s cubic-bezier(.22,.68,0,1.4);
+  }
+  @keyframes pop { from{transform:scale(0)} to{transform:scale(1)} }
+  .success-title {
+    font-family: var(--font-display);
+    font-size: 26px; font-weight: 800; color: var(--navy);
+    letter-spacing: -0.5px; margin-bottom: 8px;
+  }
+  .success-sub { font-size: 14px; color: var(--gray-600); max-width: 380px; line-height: 1.65; margin-bottom: 28px; }
+  .tracking-code-box {
+    background: var(--navy); border-radius: var(--radius-md);
+    padding: 18px 24px; margin-bottom: 24px; width: 100%; max-width: 380px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .tracking-code-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 4px; }
+  .tracking-code-value { font-family: var(--font-mono); font-size: 22px; font-weight: 500; color: var(--orange); letter-spacing: 2px; }
+  .tracking-code-copy {
+    margin-left: auto; background: rgba(255,255,255,0.1); border: none;
+    border-radius: 7px; width: 34px; height: 34px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .tracking-code-copy:hover { background: rgba(255,255,255,0.18); }
+  .success-email-note {
+    font-size: 12.5px; color: var(--gray-400);
+    display: flex; align-items: center; gap: 7px; margin-bottom: 28px;
+  }
+  .btn-done {
+    background: var(--orange); border: none; color: #fff;
+    padding: 13px 36px; border-radius: var(--radius-sm);
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: var(--font-body); transition: background 0.15s;
+  }
+  .btn-done:hover { background: var(--orange-light); }
+
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .span-2 { grid-column: 1; }
+    .modal-header { padding: 18px 20px 16px; }
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 16px 20px 24px; }
+    .form-checks { flex-direction: column; }
+    nav { padding: 0 16px; }
+    .trust-bar { gap: 14px; padding: 8px 16px; justify-content: flex-start; overflow-x: auto; }
+    .trust-item:nth-child(n+4) { display: none; }
+    .hero-heading { font-size: clamp(32px, 8vw, 46px); letter-spacing: -1px; }
+    .hero-sub { font-size: 14px; }
+    .hero-right { padding: 24px 20px; }
+    .gs-heading { font-size: 20px; }
+    .section { padding: 60px 20px; }
+    .section-full { padding: 60px 20px; }
+    .stats-bar { padding: 32px 20px; grid-template-columns: 1fr 1fr; }
+    .stat-item { padding: 12px 16px; }
+    .stat-num { font-size: 34px; }
+    .testimonials-grid { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr; gap: 28px; }
+    .cta-section { margin: 0 16px 52px; padding: 36px 24px; }
+    .cta-title { font-size: 30px; }
+    footer { padding: 48px 20px 28px; }
+    .nav-actions .btn-ghost { display: none; }
+    .how-card { padding: 22px; }
+    .service-card { padding: 12px 14px; }
+    .sc-desc { display: none; }
+  }
+
+    /* ── MAPBOX GEOCODER OVERRIDES ── */
+  .mapboxgl-ctrl-geocoder {
+    min-width: 100% !important;
+    max-width: 100% !important;
+    font-family: var(--font-body) !important;
+    font-size: 13.5px !important;
+    box-shadow: none !important;
+    border-radius: var(--radius-sm) !important;
+    border: 1.5px solid var(--gray-200) !important;
+    background: var(--gray-50) !important;
+    transition: border-color 0.18s, box-shadow 0.18s !important;
+  }
+  .mapboxgl-ctrl-geocoder:focus-within {
+    border-color: var(--orange) !important;
+    box-shadow: 0 0 0 3px rgba(232,93,4,0.10) !important;
+    background: var(--white) !important;
+  }
+  .mapboxgl-ctrl-geocoder input {
+    padding: 10px 40px 10px 13px !important;
+    font-size: 13.5px !important;
+    color: var(--gray-800) !important;
+    font-family: var(--font-body) !important;
+    background: transparent !important;
+  }
+  .mapboxgl-ctrl-geocoder input::placeholder {
+    color: var(--gray-300) !important;
+    font-family: var(--font-body) !important;
+  }
+  .mapboxgl-ctrl-geocoder .suggestions {
+    border: 1px solid var(--gray-200) !important;
+    border-radius: var(--radius-sm) !important;
+    box-shadow: var(--shadow-lg) !important;
+    font-family: var(--font-body) !important;
+    margin-top: 4px !important;
+  }
+  .mapboxgl-ctrl-geocoder .suggestions > li > a {
+    padding: 12px 14px !important;
+    font-size: 13px !important;
+    color: var(--gray-800) !important;
+  }
+  .mapboxgl-ctrl-geocoder .suggestions > .active > a,
+  .mapboxgl-ctrl-geocoder .suggestions > li > a:hover {
+    background: var(--orange-dim) !important;
+    color: var(--orange) !important;
+  }
+  .mapboxgl-ctrl-geocoder--icon {
+    top: 10px !important;
+  }
+  .mapboxgl-ctrl-geocoder--icon-search {
+    display: none !important;
+  }
+  .mapboxgl-ctrl-geocoder--button {
+    top: 6px !important;
+    right: 6px !important;
+  }
+  .geocoder-wrapper {
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ── -->
+<nav>
+  <a href="#" class="nav-logo">Send<span>It</span></a>
+  <div class="nav-links">
+    <a href="#">Track Package</a>
+    <a href="#">Send Cash</a>
+    <a href="#">Receive</a>
+    <a href="#">Business</a>
+    <a href="#">About</a>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-primary" onclick="openModal('sendModal')">Get Started</button>
+    <button class="nav-hamburger" id="menuBtn" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── MOBILE MENU ── -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#">Track Package</a>
+  <a href="#">Send Cash</a>
+  <a href="#">Receive a Delivery</a>
+  <a href="#">Business Solutions</a>
+  <a href="#">About SendIt</a>
+  <button class="btn-primary" onclick="openModal('sendModal')" style="padding:12px;border-radius:8px;font-size:14px;width:100%;cursor:pointer;">Get Started →</button>
+</div>
+
+<!-- ── TRUST BAR ── -->
+<div class="trust-bar">
+  <div class="trust-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    100% Cash Insured
+  </div>
+  <div class="trust-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Same-Day Delivery
+  </div>
+  <div class="trust-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    Real-Time GPS Tracking
+  </div>
+  <div class="trust-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    Verified Couriers Only
+  </div>
+  <div class="trust-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.92 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    24/7 Live Support
+  </div>
+</div>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-inner">
+    <!-- LEFT: Tracking -->
+    <div class="hero-left">
+      <div class="hero-badge">
+        <div class="badge-dot"></div>
+        Live tracking · 9,841 deliveries today across the US
+      </div>
+      <h1 class="hero-heading">
+        Your Cash,<br><em>Delivered</em><br>With Trust.
+      </h1>
+      <p class="hero-sub">
+        SendIt connects background-checked couriers to people sending and receiving physical cash and sealed packages. From a seller to your door — every step tracked, every dollar insured.
+      </p>
+
+      <label class="track-label">Track a package</label>
+      <div class="track-form">
+        <input
+          type="text" class="track-input" id="trackInput"
+          placeholder="Enter your tracking ID — e.g. SDT-48302-US"
+          maxlength="24" spellcheck="false" autocomplete="off"
+        />
+        <button class="track-btn" onclick="handleTrack()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+      <p class="track-hint">No tracking ID? <strong onclick="alert('Ask your sender to share the tracking link.')">Request one from your sender →</strong></p>
+
+      <div class="status-chips">
+        <div class="chip"><div class="chip-dot" style="background:#059669"></div>In Transit</div>
+        <div class="chip"><div class="chip-dot" style="background:#E85D04"></div>Out for Delivery</div>
+        <div class="chip"><div class="chip-dot" style="background:#2563EB"></div>Package Received</div>
+        <div class="chip"><div class="chip-dot" style="background:#9CA3AF"></div>Awaiting Pickup</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Get Started -->
+    <div class="hero-right">
+      <p class="gs-eyebrow">Get started</p>
+      <h2 class="gs-heading">What would you<br>like to do?</h2>
+      <p class="gs-desc">Choose your role. We'll match you with a verified courier in your area instantly.</p>
+
+      <div class="service-cards">
+        <a href="#" class="service-card active" data-modal="sendModal">
+          <div class="sc-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <div class="sc-info">
+            <div class="sc-title">Send Cash or Package</div>
+            <div class="sc-desc">Door-to-door, same day, fully insured</div>
+          </div>
+          <div class="sc-arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </a>
+
+        <a href="#" class="service-card" data-modal="receiveModal">
+          <div class="sc-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12H19M12 5l7 7-7 7"/></svg>
+          </div>
+          <div class="sc-info">
+            <div class="sc-title">Receive a Delivery</div>
+            <div class="sc-desc">Set your address, track your courier live</div>
+          </div>
+          <div class="sc-arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </a>
+
+        <a href="#" class="service-card" onclick="alert('Become a Courier is coming soon! Sign up for updates.')">
+          <div class="sc-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="sc-info">
+            <div class="sc-title">Become a Courier</div>
+            <div class="sc-desc" style="color: #E85D04; font-weight: 600;">Coming Soon</div>
+          </div>
+          <div class="sc-arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </a>
+      </div>
+
+      <div class="gs-divider">tracking IDs are sent to your email address</div>
+
+<!-- Wire Information Button -->
+<div style="margin-bottom:12px;">
+  <button onclick="openWireModal()" style="width:100%;background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius-md);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    <div style="text-align:left;">
+      <div style="font-size:13px;font-weight:600;color:var(--navy);">Wire Transfer Info</div>
+      <div style="font-size:11.5px;color:var(--gray-400);">Bank details & crypto addresses</div>
+    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gray-300)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+</div>
+
+      <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--navy);">No account needed</div>
+          <div style="font-size:11.5px;color:var(--gray-400);">Your tracking ID is emailed instantly after booking</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ── -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-num">3.1<span>M+</span></div>
+    <div class="stat-label">Deliveries completed across the United States</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">98<span>%</span></div>
+    <div class="stat-label">On-time delivery rate (last 90 days)</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">$0<span> Lost</span></div>
+    <div class="stat-label">Cash lost to date — 100% insured, 100% delivered</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">8,400<span>+</span></div>
+    <div class="stat-label">Verified couriers active in 38 cities nationwide</div>
+  </div>
+</div>
+
+<!-- ── HOW IT WORKS ── -->
+<div class="section">
+  <p class="section-eyebrow">How it works</p>
+  <h2 class="section-title">From sender to your<br>door in 3 steps</h2>
+  <p class="section-sub">No banks. No wire transfers. A background-checked courier picks up your cash and delivers it safely, with every movement tracked live on your phone.</p>
+
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-num">01</div>
+      <div class="how-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="how-title">Package Sealed & Logged</div>
+      <div class="how-desc">The sender seals cash or an item in a tamper-evident envelope. Our system generates a unique tracking ID and assigns a verified local courier near you.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">02</div>
+      <div class="how-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <div class="how-title">Live GPS Tracking</div>
+      <div class="how-desc">From pickup to drop-off, you and the recipient track the courier's location in real time. Text and push notifications at every milestone — no guessing required.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">03</div>
+      <div class="how-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="how-title">Confirmed Delivery</div>
+      <div class="how-desc">The recipient confirms via a one-time PIN on the courier's app. Both sides receive instant confirmation and a digital receipt. Escrow funds are released immediately.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FEATURES ── -->
+<div class="section-full">
+  <div class="section-inner">
+    <p class="section-eyebrow">Why SendIt</p>
+    <h2 class="section-title">Built for trust,<br>designed for speed</h2>
+    <p class="section-sub">Every feature is designed around one goal — making sure your cash and packages arrive safely, on time, every time.</p>
+
+    <div class="features-grid">
+      <div class="feature-img">
+        <img src="https://images.unsplash.com/photo-1543508282-6319a3e2621f?w=800&q=80&auto=format&fit=crop" alt="SendIt courier delivering a package" />
+        <div class="feature-img-overlay"></div>
+        <div class="feature-card-float">
+          <div class="fcf-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div>
+            <div class="fcf-title">Package SDT-48302 — Delivered</div>
+            <div class="fcf-sub">$2,400 · Marcus T. · 4 mins ago · Austin, TX</div>
+          </div>
+        </div>
+      </div>
+
+      <ul class="feature-list">
+        <li class="fl-item">
+          <div class="fl-icon">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <div class="fl-title">End-to-End Cash Insurance</div>
+            <div class="fl-desc">Every package is insured up to $100,000 from pickup to delivery. If it's lost or tampered with, you're fully reimbursed within 48 hours — no questions asked.</div>
+          </div>
+        </li>
+        <li class="fl-item">
+          <div class="fl-icon">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+          <div>
+            <div class="fl-title">Background-Checked Couriers</div>
+            <div class="fl-desc">Every SendIt courier undergoes a rigorous 5-step verification: federal background check, reference checks, address verification, cash-handling training, and a supervised trial period.</div>
+          </div>
+        </li>
+        <li class="fl-item">
+          <div class="fl-icon">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <div class="fl-title">Same-Day Delivery Guarantee</div>
+            <div class="fl-desc">Book before 2 PM and we guarantee same-day delivery within the same city. Miss our window? We'll automatically refund your delivery fee — no calls needed.</div>
+          </div>
+        </li>
+        <li class="fl-item">
+          <div class="fl-icon">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div>
+            <div class="fl-title">Real-Time Tracking Dashboard</div>
+            <div class="fl-desc">Senders and recipients both get a live tracking page — no app or account required. Share the link with anyone, auto-expiring after delivery confirmation for your privacy.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── TESTIMONIALS ── -->
+<div class="section">
+  <p class="section-eyebrow">Customer stories</p>
+  <h2 class="section-title">Trusted by thousands<br>across America</h2>
+  <p class="section-sub">Real customers, real deliveries. Here's what people are saying about SendIt.</p>
+
+  <div class="testimonials-grid">
+    <div class="testi-card">
+      <div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+      <p class="testi-quote">"I needed to send $3,500 in cash to my mom across Houston. SendIt had a courier at my door in 22 minutes. Tracked every mile. She got it in under 2 hours. Absolutely unreal service."</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:#FEF3C7; color:#92400E;">DR</div>
+        <div>
+          <div class="testi-name">Denise R.</div>
+          <div class="testi-meta">Houston, TX · Verified Customer</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testi-card">
+      <div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+      <p class="testi-quote">"Sold a car privately and the buyer used SendIt escrow. The money was held until I handed over the keys and he confirmed. Zero stress. This is how all private transactions should work."</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:#DCFCE7; color:#166534;">MK</div>
+        <div>
+          <div class="testi-name">Marcus K.</div>
+          <div class="testi-meta">Atlanta, GA · Verified Customer</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testi-card">
+      <div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+      <p class="testi-quote">"I run a small business and use SendIt 4–5 times a week for daily cash drops. The courier (same guy, James) is always on time, professional, and treats my cash like it's his own."</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:#EDE9FE; color:#5B21B6;">TN</div>
+        <div>
+          <div class="testi-name">Tanya N.</div>
+          <div class="testi-meta">Chicago, IL · Business Owner</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testi-card">
+      <div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+      <p class="testi-quote">"The one-time PIN delivery confirmation is genius. I knew my father received his envelope the moment he signed off. The peace of mind alone is worth every penny of the delivery fee."</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:#FEE2E2; color:#991B1B;">AP</div>
+        <div>
+          <div class="testi-name">Andre P.</div>
+          <div class="testi-meta">Los Angeles, CA · Verified Customer</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testi-card">
+      <div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+      <p class="testi-quote">"I was skeptical at first — sending $8,000 in cash with a stranger? But their insurance policy and the live tracking totally changed my mind. Arrived safely, confirmed instantly."</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:#E0F2FE; color:#075985;">JW</div>
+        <div>
+          <div class="testi-name">Jessica W.</div>
+          <div class="testi-meta">Phoenix, AZ · Verified Customer</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testi-card">
+      <div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+      <p class="testi-quote">"Signed up as a courier 6 months ago and it's been incredible. The app is super clean, support is responsive, and I made $1,200 my first week alone. Best side income I've ever had."</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:#FEF9C3; color:#713F12;">CB</div>
+        <div>
+          <div class="testi-name">Calvin B.</div>
+          <div class="testi-meta">Dallas, TX · SendIt Courier</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CTA ── -->
+<div class="cta-section">
+  <div class="cta-bg-text">SEND</div>
+  <div>
+    <div class="cta-title">Ready to send your<br>first <span>package?</span></div>
+    <p class="cta-sub">Join 480,000+ Americans who trust SendIt for safe, fast, and insured cash deliveries every single day.</p>
+  </div>
+  <div class="cta-actions">
+    <button class="btn-cta-primary">Start Sending Now</button>
+    <button class="btn-cta-ghost">See Pricing</button>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">Send<span>It</span></div>
+      <p class="footer-tagline">America's most trusted physical cash and package delivery network. Background-checked couriers, real-time GPS tracking, and full insurance on every delivery.</p>
+      <div class="footer-app-btns">
+        <button class="app-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--gray-800)" stroke="none"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          App Store
+        </button>
+        <button class="app-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--gray-800)" stroke="none"><path d="M3.18 23.76c.3.17.64.24.99.19l12.47-12.47L13.1 8l-9.92 15.76zm16.49-9.4L16.6 12.6l-3.5 3.5 3.5 3.5 3.11-1.72c.88-.49.88-1.63-.04-2.12zM3.29.27a1.11 1.11 0 0 0-.11.49v22.49c0 .17.04.33.11.49L15.8 12 3.29.27zm9.81 11.73L3.4.73 15.8 11.99 13.1 14l-.0-.01z"/></svg>
+          Google Play
+        </button>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Services</div>
+      <ul class="footer-col-links">
+        <li><a href="#">Send Cash</a></li>
+        <li><a href="#">Receive Package</a></li>
+        <li><a href="#">Business Deliveries</a></li>
+        <li><a href="#">Bulk Dispatch</a></li>
+        <li><a href="#">Scheduled Pickups</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <ul class="footer-col-links">
+        <li><a href="#">About SendIt</a></li>
+        <li><a href="#" onclick="alert('Become a Courier is coming soon! Sign up for updates.')">Become a Courier</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Press & Media</a></li>
+        <li><a href="#">Investor Relations</a></li>
+        <li><a href="#">Blog</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Support</div>
+      <ul class="footer-col-links">
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">Track a Package</a></li>
+        <li><a href="#">File a Claim</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">Safety Policy</a></li>
+        <li><a href="#">Report Fraud</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 SendIt Technologies, Inc. All rights reserved. Licensed for cash logistics operations in 38 US states.</div>
+    <div class="footer-legal">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Cookie Settings</a>
+      <a href="#">Accessibility</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL 1 — SEND CASH OR PACKAGE
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="sendModal">
+  <div class="modal">
+
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <div class="modal-header-text">
+        <div class="modal-title">Send Cash or Package</div>
+        <div class="modal-subtitle">Your tracking ID will be emailed to you instantly after booking.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('sendModal')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <div class="modal-body" id="sendFormBody">
+
+      <!-- SECTION 1: Sender Details -->
+      <div class="form-section-label">Sender Information</div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Full Name <span>*</span></label>
+          <input type="text" class="form-input" placeholder="e.g. Marcus Johnson" id="s-name">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Phone Number <span>*</span></label>
+          <input type="tel" class="form-input" placeholder="+1 (555) 000-0000" id="s-phone">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email Address <span>*</span></label>
+          <input type="email" class="form-input" placeholder="you@example.com" id="s-email">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Current Pickup Location <span>*</span></label>
+          <input type="text" class="form-input" placeholder="Street, City, State, ZIP" id="s-pickup">
+        </div>
+        <div class="form-field span-2">
+          <label class="form-label">Delivery Address <span>*</span></label>
+          <input type="text" class="form-input" placeholder="Recipient's full delivery address" id="s-delivery">
+        </div>
+      </div>
+
+      <!-- SECTION 2: Package Information -->
+      <div class="form-section-label">Package Information</div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Package Type <span>*</span></label>
+          <select class="form-select" id="s-type">
+            <option value="" disabled selected>— Select type —</option>
+            <option>Cash / Currency</option>
+            <option>Electronics</option>
+            <option>Documents / Legal Papers</option>
+            <option>Clothing & Accessories</option>
+            <option>Jewelry & Valuables</option>
+            <option>Food & Perishables</option>
+            <option>Medical / Pharmaceuticals</option>
+            <option>Automotive Parts</option>
+            <option>Art & Collectibles</option>
+            <option>Books & Stationery</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Size</label>
+          <select class="form-select" id="s-size">
+            <option value="" disabled selected>— Select size —</option>
+            <option>Small (fits in a shoebox)</option>
+            <option>Medium (fits in a backpack)</option>
+            <option>Large (requires two hands)</option>
+            <option>Extra Large / Oversized</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Weight (lbs)</label>
+          <input type="number" class="form-input" placeholder="e.g. 2.5" min="0.1" step="0.1" id="s-weight">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Quantity</label>
+          <input type="number" class="form-input" placeholder="e.g. 1" min="1" id="s-qty" value="1">
+        </div>
+        <div class="form-field span-2">
+          <label class="form-label">Description / Handling Notes</label>
+          <textarea class="form-textarea" placeholder="e.g. Very fragile — handle with care. Do not stack." id="s-desc"></textarea>
+        </div>
+
+        <!-- Checkboxes -->
+        <div class="form-field span-2">
+          <label class="form-label">Delivery Options</label>
+          <div class="form-checks">
+            <label class="form-check">
+              <input type="checkbox" id="s-express">
+              <div class="form-check-box"></div>
+              ⚡ Express Delivery (same day, priority)
+            </label>
+            <label class="form-check">
+              <input type="checkbox" id="s-fragile">
+              <div class="form-check-box"></div>
+              🥚 Fragile — Handle with care
+            </label>
+          </div>
+        </div>
+
+        <!-- Image upload -->
+        <div class="form-field span-2">
+          <label class="form-label">Package Photo <span style="color:var(--gray-400);font-weight:400">(optional — helps courier identify package)</span></label>
+          <div class="upload-area" onclick="document.getElementById('s-img').click()" id="s-upload-area">
+            <input type="file" id="s-img" accept="image/*" onchange="handleUpload(this,'s-upload-area','s-img-preview','s-img-name','s-img-size')">
+            <div class="upload-default">
+              <div class="upload-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gray-300)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+              <div class="upload-title">Click to upload package photo</div>
+              <div class="upload-hint">JPG, PNG or WEBP · Max 10MB</div>
+            </div>
+            <div class="upload-preview">
+              <img id="s-img-preview" class="upload-preview-img" src="" alt="">
+              <div>
+                <div class="upload-preview-name" id="s-img-name">Photo uploaded</div>
+                <div class="upload-preview-size" id="s-img-size"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pickup date -->
+        <div class="form-field span-2">
+          <label class="form-label">Preferred Pickup Date <span>*</span></label>
+          <input type="date" class="form-input" id="s-date" style="cursor:pointer">
+        </div>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="modal-success" id="sendSuccess">
+      <div class="success-ring">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="success-title">Booking Confirmed!</div>
+      <p class="success-sub">Your package has been logged and a verified courier is being assigned. Use the tracking ID below to follow your delivery in real time.</p>
+      <div class="tracking-code-box">
+        <div>
+          <div class="tracking-code-label">Your Tracking ID</div>
+          <div class="tracking-code-value" id="sendTrackCode">SDT-00000-US</div>
+        </div>
+        <button class="tracking-code-copy" onclick="copyCode('sendTrackCode')" title="Copy tracking ID">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+      <div class="success-email-note">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg>
+        Tracking ID also sent to your email address
+      </div>
+      <button class="btn-done" onclick="closeModal('sendModal')">Done — Close</button>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer" id="sendFooter">
+      <button class="btn-modal-cancel" onclick="closeModal('sendModal')">Cancel</button>
+      <button class="btn-generate" onclick="generateCode('send')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
+        Generate Tracking Code
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL — WIRE INFORMATION
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="wireModal">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      </div>
+      <div class="modal-header-text">
+        <div class="modal-title">Wire Transfer & Payment Info</div>
+        <div class="modal-subtitle">Bank details and cryptocurrency addresses for payments</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('wireModal')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="wireModalBody">
+      <div style="text-align:center;padding:20px;color:var(--gray-400);">
+        <div style="font-size:32px;margin-bottom:12px;">⏳</div>
+        Loading wire information...
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeModal('wireModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL 2 — RECEIVE A DELIVERY
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="receiveModal">
+  <div class="modal">
+
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E85D04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12H19M12 5l7 7-7 7"/></svg>
+      </div>
+      <div class="modal-header-text">
+        <div class="modal-title">Receive a Delivery</div>
+        <div class="modal-subtitle">Your tracking ID will be emailed to you after your request is confirmed.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('receiveModal')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <div class="modal-body" id="receiveFormBody">
+
+      <!-- SECTION 1: Your Details -->
+      <div class="form-section-label">Your Details</div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Full Name <span>*</span></label>
+          <input type="text" class="form-input" placeholder="e.g. Jessica Williams" id="r-name">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Phone Number <span>*</span></label>
+          <input type="tel" class="form-input" placeholder="+1 (555) 000-0000" id="r-phone">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email Address <span>*</span></label>
+          <input type="email" class="form-input" placeholder="you@example.com" id="r-email">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Your Current Address <span>*</span></label>
+          <input type="text" class="form-input" placeholder="Street, City, State, ZIP" id="r-address">
+        </div>
+      </div>
+
+      <!-- SECTION 2: Package Details -->
+      <div class="form-section-label">Package Details</div>
+      <div class="form-grid">
+        <div class="form-field span-2">
+          <label class="form-label">Package Type <span>*</span></label>
+          <select class="form-select" id="r-type" onchange="toggleCashFields(this)">
+            <option value="" disabled selected>— Select type —</option>
+            <option value="cash">Cash / Currency</option>
+            <option>Electronics</option>
+            <option>Documents / Legal Papers</option>
+            <option>Clothing & Accessories</option>
+            <option>Jewelry & Valuables</option>
+            <option>Food & Perishables</option>
+            <option>Medical / Pharmaceuticals</option>
+            <option>Automotive Parts</option>
+            <option>Art & Collectibles</option>
+            <option>Books & Stationery</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <!-- Cash-conditional fields -->
+        <div class="form-field cash-fields" id="cashFields1">
+          <label class="form-label">Amount Expected <span>*</span></label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">$</span>
+            <input type="number" class="form-input" placeholder="0.00" min="1" step="0.01" id="r-amount">
+          </div>
+        </div>
+        <div class="form-field cash-fields" id="cashFields2">
+          <label class="form-label">How to Deposit <span>*</span></label>
+          <select class="form-select" id="r-deposit">
+            <option value="" disabled selected>— Select method —</option>
+            <option>Cash Pickup — Courier brings cash directly</option>
+            <option>Wire Transfer — Wired Funds delivered in cash</option>
+            <option>Money Order — Certified money order delivered</option>
+            <option>Cashier's Check</option>
+          </select>
+        </div>
+
+        <!-- Delivery Type Options -->
+        <div class="form-field cash-fields span-2" id="cashFields3" style="display: none;">
+          <label class="form-label">Delivery Speed <span>*</span></label>
+          <div style="display: flex; gap: 20px; margin-top: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+              <input type="checkbox" id="r-delivery-normal" value="normal" style="width: 18px; height: 18px; cursor: pointer;">
+              <span>Normal (5-10 business days)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+              <input type="checkbox" id="r-delivery-priority" value="priority" style="width: 18px; height: 18px; cursor: pointer;">
+              <span>Priority (2-3 business days)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-field span-2">
+          <label class="form-label">Delivery Address <span>*</span></label>
+          <input type="text" class="form-input" placeholder="Full address for the delivery drop-off" id="r-delivery">
+        </div>
+      </div>
+
+      <!-- SECTION 3: Recipient Info -->
+      <div class="form-section-label">Recipient Details</div>
+
+      <!-- Same info checkbox -->
+      <div class="same-info-box" id="sameInfoBox" onclick="toggleSameInfo()">
+        <div class="same-info-check" id="sameInfoCheck"></div>
+        <div class="same-info-label">
+          <div class="same-info-title">Use same info as above</div>
+          <div class="same-info-sub">Auto-fills recipient details with your information above</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+
+      <div class="form-grid" id="recipientFields">
+        <div class="form-field">
+          <label class="form-label">Recipient Name <span>*</span></label>
+          <input type="text" class="form-input" placeholder="e.g. Robert Williams" id="rcp-name">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Recipient Phone <span>*</span></label>
+          <input type="tel" class="form-input" placeholder="+1 (555) 000-0000" id="rcp-phone">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Recipient Email <span>*</span></label>
+          <input type="email" class="form-input" placeholder="recipient@example.com" id="rcp-email">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Recipient Address <span>*</span></label>
+          <input type="text" class="form-input" placeholder="Recipient's full address" id="rcp-address">
+        </div>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="modal-success" id="receiveSuccess">
+      <div class="success-ring">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="success-title">Request Confirmed!</div>
+      <p class="success-sub">Your delivery request has been logged. A verified SendIt courier will collect and deliver your package. Track every step with your unique tracking ID.</p>
+      <div class="tracking-code-box">
+        <div>
+          <div class="tracking-code-label">Your Tracking ID</div>
+          <div class="tracking-code-value" id="receiveTrackCode">SDT-00000-US</div>
+        </div>
+        <button class="tracking-code-copy" onclick="copyCode('receiveTrackCode')" title="Copy tracking ID">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+      <div class="success-email-note">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg>
+        Tracking ID also sent to your email address
+      </div>
+      <button class="btn-done" onclick="closeModal('receiveModal')">Done — Close</button>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer" id="receiveFooter">
+      <button class="btn-modal-cancel" onclick="closeModal('receiveModal')">Cancel</button>
+      <button class="btn-generate" onclick="generateCode('receive')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
+        Generate Tracking Code
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── MAPBOX TOKEN ──
+mapboxgl.accessToken = 'pk.eyJ1IjoidGVjaDc4MTIiLCJhIjoiY21veTRtdHowMGhndjJyc2RyMHp4b2U5YSJ9.VTbGhmlq1noVoh5YuCP0Xw';
+  // Inject hero background image as base64
+  const IMG = '/9j/4AAQSkZJRgABAQEBLAEsAAD/4QBWRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAAITAAMAAAABAAEAAAAAAAAAAAEsAAAAAQAAASwAAAAB/+0ALFBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAAAPHAFaAAMbJUccAQAAAgAEAP/hDIFodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvADw/eHBhY2tldCBiZWdpbj0n77u/JyBpZD0nVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkJz8+Cjx4OnhtcG1ldGEgeG1sbnM6eD0nYWRvYmU6bnM6bWV0YS8nIHg6eG1wdGs9J0ltYWdlOjpFeGlmVG9vbCAxMS44OCc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczp0aWZmPSdodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyc+CiAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICA8dGlmZjpYUmVzb2x1dGlvbj4zMDAvMTwvdGlmZjpYUmVzb2x1dGlvbj4KICA8dGlmZjpZUmVzb2x1dGlvbj4zMDAvMTwvdGlmZjpZUmVzb2x1dGlvbj4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6eG1wTU09J2h0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8nPgogIDx4bXBNTTpEb2N1bWVudElEPmFkb2JlOmRvY2lkOnN0b2NrOmRjODkyZGMxLTE0ZWEtNGQ4ZC05OTU2LWQ0MGI4YzNkYjA3NDwveG1wTU06RG9jdW1lbnRJRD4KICA8eG1wTU06SW5zdGFuY2VJRD54bXAuaWlkOmY3YjgwOTExLWJhNmItNDY3MS1iNzU0LTU1MGIzYTdjOTYzODwveG1wTU06SW5zdGFuY2VJRD4KIDwvcmRmOkRlc2NyaXB0aW9uPgo8L3JkZjpSREY+CjwveDp4bXBtZXRhPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAo8P3hwYWNrZXQgZW5kPSd3Jz8+/9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/9sAQwEDBAQFBAUJBQUJFA0LDRQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU/8AAEQgA8AGrAwERAAIRAQMRAf/EAB0AAAEFAQEBAQAAAAAAAAAAAAMCBAUGBwEIAAn/xABPEAABAwMCAwUFBAYGCAUCBwABAgMEAAURBiEHEjETIkFRYQgUcYGRMqGxwRUjQlJy0RYkM2KCkhdDU3OisuHwJWOjwvFEswkmRXSDhLT/xAAbAQABBQEBAAAAAAAAAAAAAAABAAIDBAUGB//EAEERAAIBAwIDBQYEBAUEAgIDAAABAgMEERIhBTFBE1FhcbEiMoGRocEGFNHwIzNC4RUkUmLxNENysoKSFiU1osL/2gAMAwEAAhEDEQA/APzpQnFbRl5Ct5HQ0gB0q8wD91EQRJR45HxFHIgqGwehz8KIhaUUcAyLCfOjgGQiEYpwB7JQPeUApSociAUq6HYbH0oVV7L8hU+YOXaYjrSmT20AKP2Sedn5Z/I1hLPmaDwRjmk5LB5kvImMYxzsHKvocYp6l3jcY5AWnpVqkJXGkPMPp3SclCh8/D604Kk1uXex8atSWcJRNLd0Zx0kDK/8wwfrmipSXJliNd9dy/2njjYLihCJ8R+E4rGQpPaI+I6H7qPaPkyzGrB+BoVivNuvbfNari3JA/YSrnA/wncVGpJcnguxxPluSyuVwcsiLz46Ka72PkcEfLNO1vk9w6V5BWUJUeVmSFn/AGbwJP34UPvoKaWyeBaO8WYqQrmdjqbV/tWTn643+oqTXnmhmjHII3GW4glpbcpvxB2P3fmKljU7nkidPwwI7BtGxC4x8lDKf5feKcpJeBFpb2e533I83MUcx8FtnB/7+tSLfnuR4xyeBDkZMlstuIblN+KHBgj/AL+AqRPOy38yFxxzWPIbe5qZwGJCm/AMycrT8ldR9T8KcpY648yLR8RrL/UhRfZXFPi4jvtn4kDb5gVHN45j4Irl7jc8V5wcq0lBwts7HY1lSfto0dP8NnnlSP63KGMd+tlLdnMdBxakD30fwmrND3yOfulgQyQNxitRIq5FpbxTgCko+XwpyBkHLThkbftp/GmS5CjzDto+18alQ3IQI/7NOSG5FJRTgHQ3RSBk52O+RkEeI60cByKScbLH+IDb5iivEaEDW3n6+dOSG5PginYFkUG6WBZPg3RBk4Wc48x4+IpYFka2xGI2D151jP8AjNRU/d+fqx8nuO+zxUoxMSW6GA5Iidano8oz7aQ1L27RsnCHwPA+R8lVVnSkpdpS9718/wBSaM01ony9Cy6d1E1eWClWWpCDyLbc2UlXkR5/cfCtO2uVWWHs0U6tJ014EupurpAmBU31pmByYBbdMwOQBbdMwPTGy29jTGPTGzjfWomiRMbFvc7VHgfkypArjzZCpQDSQgiUdd6OBC0o9KWBC0oGc0sCCoKx0Vn+LejuDAZDh/aR/lNOTaBgMyUqV3ThXUAjBp2UDBb9C6Dc4l8Q7FpJqWi3u3qUzATLcQXEslwAc5SCCQOuAaZcy7OnOXch9tDtZxh3s0/iB7CfFbhoJP6KjtasjMq5C/YnVLUNs4Wy4kHpjpmuXjxChJuM1hr5fNG1KwrLDjumYlPt140tJUzc4LtpmjZTMxhUZWfLlWAk1fpzhVWackyhUjOm8TTR8/dEPwg1LhpSoDuOAcnMfAZGUkfIVJpa5ojW/Jj5rRdvkxUqekvRHFJGXy2FsZ/iSSMeW4pvLqH4Da/6Nu8hn3pUlq5RmWwlDrLqSlKB0AHQfAUliPQOrPUr0RiRbV9uZpiLT9koUeYH4g/gaTSY6M3EuNh4x6rsrfM5IFwhoI3ljOfQE4V95qPs+4uQvJx2e/maTpz2gbFdUpZvERyCv99I7Vsf+4fQ1G4yXiX4XdOXvLBp+nr1AvjXPZrsxNTgHs0uBwj4pPeFNUkvAtxcZr2XkllMc55n4uVD/WMHvD8D+NSKffuLQEaZLmQxJS9jq08O8Pz+oNSRqdE/mROmCVGS1kqbdiHxU33kfdt9QKmjNLmQyhnY4tlTiAohuWgdFI2V/wB/OrCnld5XcMcthsptJyhLmFH/AFb4/wC/zp6l0TIHHvQylMqZTsFNfDdP/T7qjnLC7iWnHPiVa8w0+7yFpT2aihWVMnGdj1Hj99ZMpZmvMuOKUGeclg++S8797+ddEubOS6Dq0p/rvryGp6HvkU/dJ1tC2h3VYHkdx9K00sFbmGQ4D9tJQfMbinp943DCpayOYYI807inrwG5ATUYYG2e+n8aZPZBi9xwhHX41IhrCBFSDciwjPhRSAdCPnTgZFBFOAd7Ojgbk+S0UZ5TjzB6GljHIWRacK2+yryPj8KIDvJtTsAOhFHAsn3J6UhZGtubHYODG3aubf4zUVPk/N+pJLmOOTl9R+FSYIz7kzvnajgJwt0MCIu4Wdbrolw3BHntjCXCO6sfurHiPvHhVepSy9cHiS/eH4E0JpLTLkS+ndSpuIXFlIMec1gONLO48iD4g+Cvzq5bXXaexPaS/fy8SvVo6fajuieUjrWgVkAUjGaZgeN1oqNjkxstHWmYHpjZxvrUbQ9Mblvc0zA/JkyQfKuLN0IkD/5oiCIRtREFSk0hC0iigC0oHhTgZCJRRwAM2nfx2oiNf9m8cvtG6CUP2LxHV9Ek/lVXiDxbVH4Fnh+9eH77z9SJl3DJeWjZTxClnPU4xmvN5SSba6naRTaSfQp10naZvM79F3yzQ7tdZESW7b3prCXhHQhCO2KQoEAqBQM4zj51WVZpSSXPqSumm030PPPEn2euH92RKejaeatk3BUhdrcMYFeDjKR3P+Go6fFLui8RnleO4ZcPtqq9qOPLY8/X32d5lm/XWO9hMgpGUvoLKwry52zg/NNbtHjqksVYfFfoZNXg2HmlP5mJXOPd37xLhyllyU04pDqY6OdSigkFWEjcDB3OPOuljOLgqmcJnPOElJwSy0GsjNoaUlyShxx1Ct+2R2jZHryHmT/lNS46kXmSt0ttlvRDsZUSOptKjIU5KWtGAMpLewO5ByCMjHSgLLRRmWm3XlpbWptKlYSFDKfr/wBKblEuGO4i5kV1LjLhCxulbSiFj6bj7qGzHRk11NA0vx11bZXGo5mi6NkhKWJw7QnfGAr7Q+tRSpxSzyL1K7qxeM5NXtvtAWxTiWNS2SVZ3ht2iU9q38s4UPlmoYS1r2JKSNDt0nirFpmi2HVFo1G0HLLeWJZx/ZdpzKHxSrChRU3HnsTxcKnuvI8dSkqJdjKQ5/tI53+Y2P41PGp1GOmC/twUIW3JA6tuDCvw/KpVU8SFwGUhtLY6rjnyXuj6/wDxTJ1Nh8IblbvTCvdpBKAQUK77Zznasxy9tE0o+yzzK6n+uShj9uusXU4kd2ZOZv8AhNWLf3yOp7pYW07eVaiKoRLeR/KnJDcnEtFJ5kkpPmmlgGQc1SlMDmSCedPeG3j5U2TeNwxW+w8aaBJxgnxwd6nRE2EDdPSG5FJRRAdSinoGRYR50UAUG8U4GToRRSBk6WgoEEbetHAsnyUqR4c4+8UhCkpCweXfz9KS3Ad5KOADW3N9x7/fOf8AMajp8n5skk+Q6DdS4I8ieywcj6UMBycCQc/hQEJ7OkHJE3u1pkhl9CizKbcSG30dU5OCD5jzBqtWpqSUls1yZPSnjKfIkdPahccc/R9xSGZyE5GD3XE/vJPiPvHj51Zt7l57KrtL18V+9iGpSSWuHIsCkZrRKyALR1pmByGy0daYOGy2+tRtD0xuW9zTcD8mQpSa4g6AKkelOyIIlINIQRKKKQ0IlJHh9KcAIAPEUhBEJ8jThB2kkGiNZrns6d32hNIK/cuHN9Gl/wAqzuKvTaVX4fcvcMWbiHx9Gfoc/fEvJXyOJXynlVynOCOoPrXl0qqZ3ahgok24FzixYhnuosF2X9VxU/nTYvNKbE/fS/fMa6hd7Qr3zWY+ZcRnV3iKdWcfaJwPjUsWIqFj466Ftl4maP0ZpAMTLmX4026OgIWpZQvtFZ3UrvA4BON62J29xKn2taWUlsuf9kZcK1FT7OjHGef76kHM4c2m+IHvluYfXgfrOTlX/mGDTKd3VovMJND6lvSq+/FMrVw9mi23FZXElSYyhkht09qjPr0Vj51oQ43VjtUSf0M+XC6T9xtfUpuoODt+sM+3Wl+wQb4JvOIzttcMd7u7kHmOCceG9a9HidCtFzb047zNqWNanJRW+Su3Vg6YkCJerRcmWUYCP0k0EuIGPsg7Zx5g1r0a1OsvYkpGXVpVKb9pYCWu06bucqOqDIWh1LgWmP2alkkHmxjrk4PjUk4OVOWnuGU56Zx1d5opQxco/OAh5hYyMjKSPnXD+1B+J260zWeaM64hW1iwMw51vZEZbhVhbWQlWCBtjyz4V0nDKkqyqKo84x9zA4hFUXBwWM5E6a47ansKUIVPclsJ2DcwdqnHxO4+tWsQb7iOFarDZPJqFg9o60XVKG7vAUwv/bRldoB68pwofImhof8AS8lqN2ntNGiWfVtn1EnFqvLMlZGzLiu+P8KsKqKbcVuW6c4T91ja8R+ViRzslpXIrvNdDseo/wClZ+r21gsyj7LPLTyQLjLAyRz7EjGetdv34OB8x5Y05uB/gNT2/vkVT3SyIRgdCPwrURTYsI8cfMU9AFpRn1oobkBNbzHO/wC0n/mps/dHRe447HmJz1zselSpEeQqStOx/WD12P1pyygbBEcjhwDhX7q9jT00M5C+yIO/X1604B0I604AoJ2ooAsIpwMnwRijgGRQRtRwIDJQW2HXEbLSgkH1wabLaLaHR54Iux6phXt19htZRJYOHG1DGMHGR6VXoXMKzcVzXMlqUZU8N8mSNuRkSPLt1/jU9Pr5sjl08h2EbVIRnOTApCEqayPX0oYCmJ5CNj9aA4a3FH9XB8nG/wDnFRzW3y9R0OYi4Wtqe2ErylaDzNuoOFtq80nwNCdOM1hhhNxF2e8vRnkwLjgO9GnkjCHgPLyV5p+Y26Po15QfZ1fg+/8Av4fIE6aa1w5E6pIIyNwa0OaKyG62+tMY5bDZxHWmD0xuUbmmDjIA0UIUpRKQOvOnFcKmjo8C20FQ7uF/wHNOTFgXy4+0CD6jFOyAIlA8PuooaESk+dOEESD5fSnIQtIHjtSAOo7RUcJyT5DekNND4PKv7fFm0u6WVbxfm3nFxP0q4luMpQbXkLUrYZTkDPiRWLxyrSpWNWdaWI7b927NXg9OpUuqcaUcy3279meqP9JvErSMd1WqeDEx6OpSnXbhppQktknoSEqx9K8vlQof9PXjLz2Z3lSVSG1alKOPiP71rfTlmvluvt2uS9OyTY1N/o+5sq7RAlrjuNqKkggYS3gjqCoZxvVhW9xGg2oZTfTf+/wBCCVWj22NWGvgRWpOIUAWd2TbrjCmvKADJadDjayVAYJB22z1xVCMG5YksFzplBnFtT+R2M63IRzDvtLCx18xQWVzAePuDuJnHKMnrzTJasf4XTXYXns2r8kczavNf5nr+22MK/Z8BXIajoGWu06ZSoDu0ktRG3go+v9Oj/TvwijhOzi5p6eSBWrQh/AnHvwUaks1U+5M3hXCqLdovYyorEtlYwpqQ2FoPyIIpU7SUd4vAJV01hnkn20eC+muEVpsN1stmjW1+4yHUPoYQezWUhBT3c4TjmO6cV2HCpVdFSNWTa25nOX6g5QcFjmZjwvkyrst+JAtztwuMBCVxYaELfemKJ5ShpCUkZAJUcjYeNYtzaVajzFbPryS/fgbdvdU6axLmunN/vzKVxU0XqvS0yaNWsSYNwdWl1FumE9qw0peQop8Ac4HwPlXRWdKnTtp9m1yxt4GLcVJ1K8NfeZ+llBB7M8ivHlP4iqPaS67mh2MVyOJZQEq5hzKx3SO7v8qkVTchlSeNhLdxkQ1DldcQU9ObvAfAirMaj6PJBoxzLjZuNGpLJH7IzlyI5HKG5A7VJHTbO4+RpnZUqjy1hkka9amsJ7EVCmPXFyRKUxhKl4yjcZ6n8a3qdRTWUYU46HhkzYAFz1bfsHrV+398rVPdLM2jA8R+FayKOQoR44+Ypw0UEZ9fxpwMgZiP6uf4k9fjTJ8gwe46SnrUqGBAjbpinjT7sgQcjI+oooQpKVoHdVlP7qtx/MUcY5AymLStJ+0Oz9TuPrTs940IG9s/f/1p6G5FBFEB0IpyEKCKIMg32C4w4gdVJIHzBoNZTQYvDKHo7Ts206tnuyWwG321FKk9CeYHFYtpQqUriUpcmvuaVxVjUpLT0Ltb2yn3kJwMPr2+la8P6vMz5Pl5DtACjgjlV5GpCM7yYo4EcLexoByc7POR1FIWRncGimKrbICkfLvCop7R/feSQ5jktZz408ahrNt7UxhbTyOdB38iD4EHwI86jlFTTUh8ZOLyhrBub9ndTFuCy6wshLMsjqfBK/JXr0PoerakpKbcXb0OfFGcISUHynBqJtKA5kjOQPiakluX6OQtPMtqWMdpGc+rq3+c0VFIbVXLByOnRKOQOMhAFHQiNkQnDmPk70AQ5aMdK2Cl9aCocI8CkLSHbdSWVFsZ8DSwHJ2KWYzB7Rre42J/nQwHKVK0tBHiTjpTC0OwObFSg+nWjgGQmhD5dRgJOT6UAkhtLLaEA5UkDGT1oYESnCuJAG1IUMGrOO7RwA4bWG/AgKPmWxjFDAuoOVDBz3YKT4pKSCfzFDARbXjbqcEHI2+Jpw5DqIl5TaRtyZHmDS1j0GMKRjBJyM00P6AeQFqZaRlJcGM9M0wQFgNqOyeVWenSmj7gIQ4rWNoqFY9FdaYgbONQ7q5dkCQhJ5Tjw9aaOTkXjcH2fBJ3HqKGgh2kX7G4OE4PlTkMk6PVJSnJSnc9M7fGpWsZF3GBo3VkXJIbQD5Kzn60kX6DXDJCjIVH+9BHoKDlKQ8NB4a2yFqGzrjZ8cU1blzRjW5oS6afkBb0ZxCz0bAyk+h80BKMouyInSaJDSE9kFJSDuU9frUN8lcmgDMdqx2paSFNKT/Ac0IhXMaiyxnCMH4VICBNpJW8vJHhjPrTMcEXA0u6rg/SU/I+VGXyAlp3PZGUjPiOlYOrC2jqkXaFGW+Ryj6K2bUrXH3OKSsj0q3RgqnP6oHJbJJp3AaOymleAIHlQWyVs9JoJI6nNSJtDGKlkJpCFBRRA0pCFRFaQoRJHWiIWlIQWpGT5UANqVuKAIE5z40A/IPiGf2c+ooqK1K0kVoRSJzUxBWpB6kZpUXFEkXlhwJSVKBz50VBi1IfOqSBqTBKgPGiodiyKaB3q0bZpmCUiMkFI5lKH1p9JfKZ0NjY0Jat4SoMpJ/2aTj8gaTJNa3yHW2UMNNp/dQgJB9aBiUcDGKAWA4GSoIe3HujwGwoCEBTbJSMtdD/AHR0FDAi0FRCCn4ChgIOw0N1ZATgBR2FLAgJbIwUY3FIWQ7i07LyEIPgRRUQQrTSwvbI+dDAxVaV6XuEcnJOSST4nfanBJxknHH5HqJFpZHIkKSQQQfHOaXvh8w0LrqUghzU1vvSF4G9u1FTAWoCgKI3jx9tVxdqPmWqNBNRl5gPIZUBnAwSfDxFSxqJk6oRXMx8bDJJFSqDJJkSoBlRHN5E9adoO4z3C4+eTz+1IOUM7cEDmoJEFXTBjnfT8AaZLQlT6MStBHhVKc2tyhMcE7nep1sAqK9x9oJHUmprgULsRBHRG0D4r/SJpLRpHZ1aU4LI/hSrIpNg/c5b1uQWW8cyj0pbVo7gXFaxNSoKbgMhLSWfLKT40JqkrSFO9kzPiR8qjUbQkb6HXDhyEoHlRlPgFIxnftqJh+Y3LRGbFnaW5gHKkYQenTr4eVYXF5SqRdOtGUv8T+H0WfjmXrSjTrSjqotLwSt+j5Pq/wBi7HWhgJVgHHh50ikmMfFtJ6nxYHKzEf3JJNHQMw/JMXV8PsZJyGUjFDOBVo4HJmVJnKwkDCge9twIr0Gx4NRnF1KvJfyLkJd+GqM5dzHHqpJGMefT+dXcPDXGTVJcrvsVvxLBenqW+Hpzjt7fy3X/wAu/gYLxD1Jcr3LJlSHFDYJYQcBsZJ2ztnnNVqkFTWmJFuXB9MXNtFGFLYmPJDX2EhOcnbOPfNYlSrOCfL1LmirfUwjZWFMz2gTIXy8ueXlIJyCeuKZFdGv91J9cj5UUQE72MpKTjwJz8f+9TKSaIVJxfI2W2ILilAq5hhI2G3maZlGlF1CyS0p5QG5x4CiIXmM4lOAQD13pJDLJJI5sFCcZ8s7fA0C2iauQE8hHjsKKtCxgE4HrQiHvLFKKgT1oSJTOEEJP1qNjqXeQ3J54VFUpAIx50hGVXpbxXhPLj4ilGUoSuLZMqTxQqVONFPzKMXJvp8OvyGOobcJbf7EBfNjf/cKr1Laqk8yWTThWxbXM6aWNk/zRT9UKVOnBRisc0l6I9K8CeEV0FZMk2i3NJltJfckpjjnQvACclPLgkA1b43WrUqMaNNeauv04HkLmpU5Xt6T34bvuf/8AJHoFmOuJe1IXJL7TynUJcbTICTy4OwBxsa+7sKEqFpCFSmpvz9d9/qfK8VqxqXE5Q2Xp5f7GT8Rp0G/QY0S3x3nJzLjxlq7RO6EqQByoI67jJ36dKz6co0qcU8ttPY0akHVmlLZJGV6f0j7mxLpKcMVlT4aSHAopUvqnBHOByj4E70upSUnJqXPzfU0qVCFJJQWF4I5ioAncHb40A0vBBIGOMeVNFRxktEAbdCVkeQz4VPGUoq0u5Wqxg3tJXMi1Rp5UQDmzk+g60Wso4uLGJoye0pLBHXzVR2Qi2mkrUtOAfIDJqOMXOVyZ0KkYLTDCRqKU3SLkdRTkJFWBKLRIIPipAV8aiSmybZKlN/PJB9KicXFthfAtb7xU5IM1K8GdTXbSJbNvuclhFxiJcSXEBKyknlOM7jlOPdW1b1Z1KKlJ3aNl0Zqy66T1rb7pb5VzjIlyY4WqEOcgKJSATg9M5rD4ja0rl9jVuPdz4xN3iN/8VdGrddbZ/V+wR6D1Z7aFv0pNenW36fuMpSEnkBKXXFKSQF77E58a63jqvqWtOpd0lpkujy/m3jtc/wCVWnRjp8M+nLzQr2cLfZ4moOGOnhM95iFOpE5Tq3WQoLbTlLYGCQOm5+ldF+OqnD601Qb0pc8P0z5N9PkVOCqNWMqjWtLa/X9k/VnkmyI1p4vLTK0rJiJbfRkKAV1zjwyOhFdvQco2VNvdadrZ66vnvHqt/mLiDg7O4XvR2ZS3Tia/3nnXJSiXGFdT09P5V6Hy5hVLWmkrV6P14kEJ61FS1Zrw2KBqCYI8FxRwVkYSD4VO0t8Fo1w1aBqSbOIw6VlJGMEqxv86zaslJKPW5rWVPU9T5fIsHDiFe5VxhzHLcqC00EFKFp/SqQepBO2fLas21lKnOLa0OjilA6t7HKlXZUtYS2SG+bJznjuKk5U6MMpauRkKaTmpFcOeX/AGj9lIFatKjqSTXa8ihaVsN0L7Nx0tfl3h6LLdYZjQ5BKHS0FBCilW3LkHl60mtNKEuTZV4ZT7WcZ04t9Ftv5/yZ+23G8WecpdvukhLzS0hSUuFJAz0I6fOqcqco7oKoTi9jTW8oNwVZVhtVhIKbg4o9FE8v3VHVXaV0L3cLiSBzqCFJ5R4g/eFSKTfkQqL7zPdC+05Fsc9u46ls0LUqOcEzGRzHf7WUj86t08dHJNcuiLMb+pHGnp8fU3m0+1noK6OMNvzZFrU/sD7oDqiD1HAc/lVxcXoLVj4HHzcKuoO8X8zd9L8QtE6lkJjWfVdrnvKGfczJS4cHod6YlSqLZMiVOcXumWzNDU0DdaAoijgAoKwoKxsKUBCkIRoSOhFOAEfZPxpPkJcz5vbPrQQmbzwZ4kat0zYrdEtunrHe7Sy465/4hEadeSlS8qAUSefwxkYrk+JWtvVrynNe1t0Oo4denRVOMnpWdk8fc2+1+01qOFcGocLhxa5Uh3vFqODEV5nfm5CceGd6zqdlDLjTa/fxJ53k2lKq38dy22z2wo6m8jSKWJaMpdjqlcq2jkjB/V+Y8DUFSjUoLM44z5foSQnCvJxpyzj9959ePbPucW3RX1aEfbjqKg+7KQtTTYB2IIOMHwJ8fCpIQr7+3Hy3yRz7Fc4vz2wV2X7ScjUb7bTuhNKTGHApYZlwufOQSCVEKx4ZwPmOtSQdectNJ4l5Z5EU6dvCGqotvF4KnrXV9qRdYjDOh9GXCZKjKL1xt1pebQ0lSSlTBBIyepz6jatC5Vw3qnVcuXNNbmfbq23jGmo/FPY8+27S+s9Oa5nS9K2O6xmm5ShHLMdzl5ArIGT1TgAddxXQaFcW+issprcxe17Cs5U5Yw9j07A4Nf6Zfc9SatuWodLXdLKI67dbgQyeXP6wbbFWdx6VnWvDaFpSdJb5fVLJNccQq16mtbfFkvqK1xrHcnrXFdcejxmwwmRJGHOVKEjK/x+VcxVoRpVZwjyTOutqzqUYzlzaMVt86Bw+tzVpnXiE+4Cp3tWFnkIWokDvAVozpSrS1xiU6daFKOiTGd/vkW7xYZhvokckpp5XZqBwgZ3p1Km4N5XQbVqxklh9Riq/Ry4Eh5BHic9KnVN4Ie1WeZCa3fTNhxOxV2vKtRPJvjYVNarTJ5IbhqSWCnpSUhRUlQx5g1qRWTNlLA0mQ3JZThOyfOrEcIhbyIj256KvtOVHLtgoOfr5VBOrHkiSEGTNyhttx2HwecrI2A6UqMtWUCcdIO8AIdikgjLA2PxNT2/KXmR1eaC6ZtLGotQ2y3SRlqS+G1FOMgHO4zVtblWXspshpdgDEh1AkLACiAEpAHUinaAqWRmq1hJ/tnj/ixTdI7INVrYH2lOK+KzTdIk2INsihBPZ5+JpaUOyzjUKOkKPZJ8NyPjQSQMs72TSQrDaPkKWEHcLBcaaWrtlyezwcBhaQQrwPeBz8KI0W/cC2B7vIdUrO4faR0+INDOApDJvU8lJWFJbPJ1PLjP003WHShbWsSnOWup8CoUe0QtA9RqHtlrS7GWgpTnv9VHyGRiooQnuSgYQlW4QAKST1CiR8qWQhSShXMQrJGASMgCigQnspSuXfqTtWWqksGpMobSQy+kHBBJ2xvnrVGcE7XFvb9xNGVTD1Jv7LLfMTzKkMJyXP71LCwknBwFZ3IIBFR1OZQjuQ5NnAkMITgjBXjCR+dZl/GM4VVNLZPfp8CpWpRa1JaXjBN7SuLSFHOClZHoQT+VWLeSlTVToZt0pU6sacdnhPxR5Y0TKXf7NqhcMiHKlMJUy+GyhDqU7b+PNkGvPpV3XTlNYbi9t999hW45xGrS0w/m3XvODy3s7y1Gg4pLjThfYCgrkJXhPeH90EflXYQbwsqS9Tm6kXFs+XLqsHlOMDqfLFCRNqZfZEqO0pK2lKSCMAbbGl7gDUSPsLJtpwDCkEU7Ih2YDe4ZadGRkU6IjJKfQh16xMkICQWnj0PnVapVa5EMqfPcraI3uiVBDjYVjfBIBH41FGSnzRfg09ZFBg9k2+rr+kKfwNFKjFR5p7GpWpScFFSUXs3jB9g1oXgJA1QvVrNyucSeyXGR2DiQlKwoH0AOOXbtUreD1IqxVe+3oU5cJUpqaXNFi0dwM0TpTTb9kgWGMqO9nnD6lqd5i5g5S5k5T5YqVtc6mniCWe1Z4+Bj1qVOc1LGVjluXl7RvBkqOiBa4kI8w9xWXOp3I8/CsFcRlN3FaKin5ep0EbVqNPHZrCX1JFPCnVnEaLrW3aSueoJ0q5OW9JCVqkPJ7PmCiFFCQkD1BVv6HFeXT4bOtFOUI/JfN9Wblbi9OhJxjJp9MdEVy5a8n6r0zqCyRYUx24sIbkyCwVMFBSoHCcnlJJAJGST41ycuH16SdKUvT8ew3+KSvJqokl/kz3i/bIGrY6bVOvJnQrxFU9IkFCnGi4FJGUpHdk9ORvXS8NtpW0XJrMt8+bXz38jjuJX9K8mlHRH/IqOoHLFYn0XDUkGXJZiNn3SY3IW0vCggnCO0UB5dT8q1p8OScnOnFSa8cJfU1eLaVOjCOvdP5+T/3YqF1u8K1zItou1ztkm5JLDyHXQ424lKsELVyFSsHpvVeMqMpSnSTe2c/dlGrKlUpqM6qWdnblv6dCqSirgBYZ5VHKlKjg+HKPStKnWjTi1Nap78inOlKWqLjp8OTK7pF+XCkxoFwYU9DSGlPpLbnZqWoqJOFKOMnCfl1rlu0rVaVNuXXy8fBeDI07p5nKLxHSuX5mz8M5OpL9MubF61TJuUGxvIkzY7Lq3EpWMqbbCASPn5V0U+GwsaXaU3hdfJfqe+/cc9cZ4tDt9cFpX1/QjbhaZfEz9JJktvPOzVypHaR3FBLneMv3VjoBy5xUk4qdCXb1Hqxx+evlkkuVFTVLNVVFrfPJPj0wkzXeNOu+0n2WbVKt1ot0eS7IVEilbAbaUtS3CgrUd05HgPAbVRWnHFxT7t9Xhf7bmlTi28pPPTKRvuvdVaSm22fa7vc7E3FjJVaW4KixHl42IBABOR1G+d6xKlgqFaErho3p7IsjC6q1aiq0nvhL4vqjK7Bwz1HrLWepHdNy5EuW1PoelPqW88FJO3KFbdQD51oKzuKtOdFSSfLbkiJ1baM1KJTO2Ss6K1pafaVvNvvDi1RnnYrzq21AqUFo5QoA9DyqJP8AWrPqcMd3VjOjVSSey8PPx/3NJXMZOGc9VjzKFrXQ8PR18kM6j1FKui7kS+EtLDI7t0NPIBSElYHMrkAB25ugqOrRlJOMkm3j4fTmvM0aNxGcXGMmkvqSzPEO/wAzRui2JjALbmnZ81bbrjqmm0Keew2QFnPLnl8RWJDh0a0nNy3XL5FmpxGVCKjlJv8A4OWTX1r0x/QVpjao1dZ26qiXeVIJPO3CdQVNlWD+rdBKT5HbNWdMn2CypuLqbdF+Xe/7i1V1XUnjq1jPV+XbqzSuHWqrxZrnJbkSHJ0eVHKJMWSpLiTz9R6dCDV3i+I1bSrFxqKUWsNPr4+KMBc3NBpxbT+Rmj1/1Vovizd7UbncLlHmJQy3d3VvF+IsBR5ELKuYJSCpOD3c9K9GqcLg4KtBN94rb62z+pmUbyjVeqM9PS5M9E6FuEi5cHrVNm5MiaIry3nN8qcS8sEk+oAFV3bpStmpLz58meRrRbqtNdCna+1HqfT/EPUDGmdRXK2WW5DsiIiG8rso7fMFtlI2CyRuPDI8KxaOHU6nvv8f8AZkXEXV7CHZJZ5bvL3JdGLiXqfVnqxbLVrCRcCkLfnKDlvRFQFbqSlWQARnt2xVanGpN1Ki3WXvt15+RfkppJN77v6fmYFqHiRf7vDmwrhcXH40psh9LhJLiR0JH3VyNTh1BvSlFNHV8N4nW1JxbZ+g/Q7etLhcNM2maJj0+3pjJWpXNytEJ5ifQgmuepqdKm2nhvY9SjQeqLO1Q+1b4+b8cGVeyha7ZrLVLcLVElkWWysrnoiABxwKIPhyJUBWzxz/VdnRpU3Sg5tbvu7y+SPMP8Q8S9qnW6eH/n+pgXDeMpqbCWoqW02VFQHnuK2bh4bNopOZPHhlY2cWlRTLJeCtsjmOQ/IqzjrXq8HqzlGUXyZlcaoxhVjKPNEgb1cXbi5IWElIJx/OqspamaVKmqSSe5gXGmVISHgPcSsgDwJpxRHVlaKLEuUjBwcZJHTNK8C5yM96HA4b7LNg0TbO/nJEhBBbxnBHPgn5V5VRoKv2jtueySgst/DyT/b6HqkJunh03tse/tIwxFRJXGKjgbpksjOepB5T+VTtU5KEpJX0aSfnuaEJU3Nxk3jLyJuVFdYfU6w0HVdUEHcAVTjXqJqMY3/3Yf2ppKPtJL0yJWvU7GkX0RI8Ztu5y0FZ+IpMJx4MqLGdj6gfcYK0/RqQhxLjZ5VHByc/GtSFFy1xfJkyqV4R0yWUvQu/EW8JtFqHaFvnUvbOBj71MtZ0VF1aU58sdqKfh9aqSFSvmCTxK07YeINjbvEbT0U3C3Zf7B7teX3hAUoEgqGCpIIPXFV68q9KTUVv3M+haKjVTfU3rQ6tJhuy7fqC3WR+7MNx23mkBUVxBUhXKPHKSfLO1dHSwn/wBPBq8tb5dDj7+o6NXs3GLWMrK/+yuNcLpkrVPFO3x7U3IbvduFtlXBiMqKktxZ4PaFAGBj3Y9CknsK9OXEYxp9jjGvHwKlHhkqsnUbx4mScBeE+pNYLvCrExDFjfStq5TXkqDZ3x3EAqHN0yCfXFYPEuKUtHYwlp8zoeH8BjiqNRVF0X9il6v4CX3QqXbnMk3VTTrr0pDzS+cq5ioLTtygq7oVjGcjPWuNocXpVJulVvFvbW8rZ5W+WX6+J0VXhNSjFVKWH3w8Z/Ln6mN6j0TqPTnbIuFkuET3hHKhxcVaRt9o7H7jVqhf0K1PVGpFp9cElaUqHZJxd9mdVQgJSSBhIO/TNZ3a44bLGTRZNs0zpaTBi6nsvvqWPdUKL6OTGxIHN0KQNx/OrELqVSCaa5p7k0bZwnFxa36dTE/Zw4j29G4MUzg2fZ7RsB08qpHOb42w9TaqcY5MXU7DpQgqXHfzjJGFZHUZNFEp0sYkEMiCUKBT4dKGqJNpFlB7xFNJYC8w9wGp+sSW5FoYChtjJHiasxp9oQ1KvKD0MbTFJJMshJHpVxiE5BJSAIXj4tVJCYOI6GkCpYKMDuoDJ8aSJVhpMaqWnlKh1AJpbC5C4JqhhaVJHJgqFHKJSqGFJBJzgnHjQgDCZhq+yz2wbWUnmUgpOwxuKkjLsJoyuRi7FJb1nzwuZR6HHjT9wVwjSbm2h+6mM4FqBSSDjbwFRSqKnFyuS7bWvyR5q4i6n3ZRUtLa1p5gkjZQx6+Hyrv+F8Pl2XbXNR83z25v56mlSwdV5Svjkk2SvHHVN408/GiRj7mhQQHHc/qhvgkd3bYk9O9dbHCqUKrqTd/BFCfi5OHiZuNznT3ILEmS+8WHHASpRBycmumlSSWkztfycVBJM/9k=';
+  document.getElementById('heroBg').style.setProperty('--hero-img', `url('data:image/jpeg;base64,${IMG}')`);
+
+
+  // hamburger
+  const menuBtn = document.getElementById('menuBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', function() {
+    mobileMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', function(e) {
+    if (!mobileMenu.contains(e.target) && !menuBtn.contains(e.target)) {
+      mobileMenu.classList.remove('open');
+    }
+  });
+
+  // tracking
+  /* ── TRACKING (Updated - shows inline status) ── */
+  async function handleTrack() {
+
+      /* ── INITIALIZE ADDRESS AUTOCOMPLETE ON FORM FIELDS ── */
+  let geocoders = [];
+  
+  function initAddressAutocomplete() {
+    // Destroy existing geocoders first
+    geocoders.forEach(g => {
+      try { g.onRemove(); } catch(e) {}
+    });
+    geocoders = [];
+    
+    // Address fields to attach geocoder to (using their container IDs)
+    const addressFields = [
+      { inputId: 's-pickup', containerId: 's-pickup-container' },
+      { inputId: 's-delivery', containerId: 's-delivery-container' },
+      { inputId: 'r-address', containerId: 'r-address-container' },
+      { inputId: 'r-delivery', containerId: 'r-delivery-container' },
+      { inputId: 'rcp-address', containerId: 'rcp-address-container' }
+    ];
+    
+    addressFields.forEach(field => {
+      const input = document.getElementById(field.inputId);
+      if (!input) return;
+      
+      // Create wrapper div if needed
+      let wrapper = document.getElementById(field.containerId);
+      if (!wrapper) {
+        wrapper = document.createElement('div');
+        wrapper.id = field.containerId;
+        wrapper.className = 'geocoder-wrapper';
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+      }
+      
+      // Hide original input
+      input.style.display = 'none';
+      
+      // Create geocoder
+      const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        types: 'address,place,region,postcode',
+        placeholder: input.placeholder || 'Enter address...',
+        marker: false,
+        minLength: 3
+      });
+      
+      // Add geocoder to wrapper
+      wrapper.appendChild(geocoder.onAdd());
+      geocoders.push(geocoder);
+      
+      // When user selects an address
+      geocoder.on('result', (e) => {
+        const place = e.result;
+        input.value = place.place_name;
+        
+        // Trigger input event so validation can detect it
+        const event = new Event('input', { bubbles: true });
+        input.dispatchEvent(event);
+        
+        // Also store coordinates in data attributes
+        if (place.center) {
+          input.setAttribute('data-lng', place.center[0]);
+          input.setAttribute('data-lat', place.center[1]);
+        }
+      });
+      
+      // Sync geocoder input back to original input
+      geocoder.on('results', () => {
+        const geocoderInput = wrapper.querySelector('.mapboxgl-ctrl-geocoder input');
+        if (geocoderInput) {
+          input.value = geocoderInput.value;
+        }
+      });
+      
+      // Set initial value if input already has one
+      if (input.value && input.value.trim()) {
+        const geocoderInput = wrapper.querySelector('.mapboxgl-ctrl-geocoder input');
+        if (geocoderInput) {
+          geocoderInput.value = input.value;
+        }
+      }
+    });
+  }
+    const trackInput = document.getElementById('trackInput');
+    const val = trackInput.value.trim();
+    
+    if (!val) {
+      trackInput.focus();
+      trackInput.style.borderColor = '#E85D04';
+      setTimeout(() => { trackInput.style.borderColor = ''; }, 1200);
+      return;
+    }
+    
+    // Remove any existing result
+    const existingResult = document.getElementById('trackResult');
+    if (existingResult) existingResult.remove();
+    
+    // Create result container
+    const resultDiv = document.createElement('div');
+    resultDiv.id = 'trackResult';
+    resultDiv.style.cssText = 'margin-top:16px;animation:fadeIn 0.3s ease;';
+    resultDiv.innerHTML = `
+      <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:16px 18px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:20px;height:20px;border:2px solid var(--orange);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+          <span style="font-size:13px;color:var(--gray-600);">Looking up tracking ID...</span>
+        </div>
+      </div>
+    `;
+    document.querySelector('.track-form').after(resultDiv);
+    
+    // Add spin animation if not already added
+    if (!document.getElementById('spin-style')) {
+      const style = document.createElement('style');
+      style.id = 'spin-style';
+      style.textContent = `
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    // Wait a tiny bit for visual loading effect
+    await new Promise(resolve => setTimeout(resolve, 600));
+    
+    // ── LOOK UP PACKAGE ──
+    let pkg = null;
+    
+    // Method 1: Check localStorage (where generated codes are saved)
+    const savedData = localStorage.getItem('sendit_admin_data');
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        if (data.packages && data.packages[val]) {
+          pkg = data.packages[val];
+          console.log('✅ Found in localStorage:', pkg.trackingId);
+        }
+      } catch(e) {
+        console.error('Error reading localStorage:', e);
+      }
+    }
+    
+    // Method 2: Fallback to JSON file
+    if (!pkg) {
+      try {
+        const response = await fetch('api/data.json');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.packages && data.packages[val]) {
+            pkg = data.packages[val];
+            console.log('✅ Found in JSON file:', pkg.trackingId);
+          }
+        }
+      } catch(e) {
+        console.error('Error fetching JSON:', e);
+      }
+    }
+    
+    // ── NOT FOUND ──
+    if (!pkg) {
+      console.log('❌ Package not found for ID:', val);
+      resultDiv.innerHTML = `
+        <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius-md);padding:16px 18px;">
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <span style="font-size:20px;">🔍</span>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#991B1B;">Tracking ID Not Found</div>
+              <div style="font-size:12px;color:#B91C1C;margin-top:4px;">No package found with ID: <strong style="font-family:'DM Mono',monospace;">${escapeHtml(val)}</strong></div>
+              <div style="font-size:11px;color:#DC2626;margin-top:8px;">
+                Try the <a href="tracking.html?id=${encodeURIComponent(val)}" style="color:#E85D04;font-weight:600;text-decoration:underline;">full tracking page</a> or check the ID and try again.
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      return;
+    }
+    
+    // ── PACKAGE FOUND — RENDER RESULT ──
+    const statusConfig = {
+      'awaiting_wire': {
+        label: 'Awaiting Payment',
+        color: '#F59E0B',
+        bg: '#FEF3C7',
+        borderColor: '#F59E0B',
+        textColor: '#92400E',
+        icon: '⏳',
+        desc: 'Waiting for wire transfer confirmation before dispatching courier.',
+        progress: 10
+      },
+      'wire_received': {
+        label: 'Payment Confirmed',
+        color: '#10B981',
+        bg: '#ECFDF5',
+        borderColor: '#10B981',
+        textColor: '#065F46',
+        icon: '✓',
+        desc: 'Payment received. Preparing for courier assignment.',
+        progress: 25
+      },
+      'pending': {
+        label: 'Order Placed',
+        color: '#6B7280',
+        bg: '#F9FAFB',
+        borderColor: '#D1D5DB',
+        textColor: '#374151',
+        icon: '📋',
+        desc: 'Package registered. Courier assignment in progress.',
+        progress: 40
+      },
+      'courier_assigned': {
+        label: 'Courier Assigned',
+        color: '#3B82F6',
+        bg: '#EFF6FF',
+        borderColor: '#3B82F6',
+        textColor: '#1E40AF',
+        icon: '👤',
+        desc: 'A verified courier has been assigned to your delivery.',
+        progress: 60
+      },
+      'picked_up': {
+        label: 'Picked Up',
+        color: '#8B5CF6',
+        bg: '#F3E8FF',
+        borderColor: '#8B5CF6',
+        textColor: '#5B21B6',
+        icon: '📦',
+        desc: 'Package has been collected by the courier.',
+        progress: 75
+      },
+      'in_transit': {
+        label: 'In Transit',
+        color: '#10B981',
+        bg: '#ECFDF5',
+        borderColor: '#10B981',
+        textColor: '#065F46',
+        icon: '🚚',
+        desc: 'Package is on its way to the destination.',
+        progress: 85
+      },
+      'out_for_delivery': {
+        label: 'Out for Delivery',
+        color: '#F97316',
+        bg: '#FFF7ED',
+        borderColor: '#F97316',
+        textColor: '#9A3412',
+        icon: '🚚',
+        desc: 'Courier is delivering your package now.',
+        progress: 95
+      },
+      'delivered': {
+        label: 'Delivered',
+        color: '#10B981',
+        bg: '#ECFDF5',
+        borderColor: '#10B981',
+        textColor: '#065F46',
+        icon: '✓',
+        desc: 'Package has been delivered successfully.',
+        progress: 100
+      },
+      'cancelled': {
+        label: 'Cancelled',
+        color: '#EF4444',
+        bg: '#FEF2F2',
+        borderColor: '#EF4444',
+        textColor: '#991B1B',
+        icon: '✗',
+        desc: 'This delivery has been cancelled.',
+        progress: 0
+      }
+    };
+
+    const config = statusConfig[pkg.status] || statusConfig['pending'];
+
+    resultDiv.innerHTML = `
+      <div style="background:#FFFFFF;border:2px solid #E5E7EB;border-radius:8px;padding:24px;margin-top:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <h3 style="font-size:18px;font-weight:700;color:#111827;margin:0;">Package Tracking</h3>
+            <p style="font-size:14px;color:#6B7280;margin:4px 0 0 0;">Track your SendIt delivery</p>
+          </div>
+          <div style="background:#F3F4F6;border-radius:6px;padding:8px 12px;">
+            <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:#374151;">${pkg.trackingId}</span>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div style="margin-bottom:24px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:13px;font-weight:600;color:#374151;">Delivery Progress</span>
+            <span style="font-size:13px;color:#6B7280;">${config.progress}%</span>
+          </div>
+          <div style="width:100%;height:8px;background:#E5E7EB;border-radius:4px;overflow:hidden;">
+            <div style="width:${config.progress}%;height:100%;background:${config.color};border-radius:4px;transition:width 0.3s ease;"></div>
+          </div>
+        </div>
+
+        <!-- Status Card -->
+        <div style="background:${config.bg};border:1px solid ${config.borderColor};border-radius:8px;padding:20px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:${config.color};display:flex;align-items:center;justify-content:center;font-size:20px;color:white;">
+              ${config.icon}
+            </div>
+            <div style="flex:1;">
+              <h4 style="font-size:16px;font-weight:700;color:${config.textColor};margin:0 0 4px 0;">${config.label}</h4>
+              <p style="font-size:14px;color:${config.textColor};margin:0;opacity:0.9;">${config.desc}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:16px;">
+            <div style="font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">From</div>
+            <div style="font-size:14px;color:#111827;font-weight:500;">${escapeHtml(pkg.pickup || 'N/A')}</div>
+          </div>
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:16px;">
+            <div style="font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">To</div>
+            <div style="font-size:14px;color:#111827;font-weight:500;">${escapeHtml(pkg.delivery || 'N/A')}</div>
+          </div>
+          ${pkg.amount > 0 ? `
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:16px;">
+            <div style="font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Amount</div>
+            <div style="font-size:16px;color:#E85D04;font-weight:700;">$${pkg.amount.toLocaleString()}</div>
+          </div>
+          ` : ''}
+          ${pkg.courier && pkg.courier.name !== 'Pending Assignment' ? `
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:16px;">
+            <div style="font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Courier</div>
+            <div style="font-size:14px;color:#111827;font-weight:500;">${escapeHtml(pkg.courier.name)} <span style="color:#F59E0B;">★${pkg.courier.rating}</span></div>
+          </div>
+          ` : ''}
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <a href="tracking.html?id=${encodeURIComponent(pkg.trackingId)}" style="display:inline-flex;align-items:center;gap:8px;background:#3B82F6;border:1px solid #3B82F6;border-radius:6px;padding:12px 20px;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='#2563EB'" onmouseout="this.style.background='#3B82F6'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            View Live Map & Timeline
+          </a>
+          ${pkg.status === 'awaiting_wire' ? `
+          <button onclick="openWireModal()" style="display:inline-flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #D1D5DB;border-radius:6px;padding:12px 20px;font-size:14px;font-weight:600;color:#374151;cursor:pointer;font-family:var(--font-body);transition:all 0.2s;" onmouseover="this.style.borderColor='#9CA3AF';this.style.background='#F9FAFB'" onmouseout="this.style.borderColor='#D1D5DB';this.style.background='#FFFFFF'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            View Wire Transfer Details
+          </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+    
+    // Scroll to result
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  
+  // Helper to escape HTML
+  function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  // Prevent Enter key from submitting any form
+  document.getElementById('trackInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleTrack();
+    }
+    this.style.borderColor = '';
+  });
+/* ── ATTACH GEOCODERS TO ADDRESS FIELDS ── */
+function attachGeocoders() {
+  const addressFields = [
+    's-pickup',
+    's-delivery',
+    'r-address',
+    'r-delivery',
+    'rcp-address'
+  ];
+  
+  addressFields.forEach(fieldId => {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    
+    // Skip if already converted
+    if (input.dataset.geocoderAttached === 'true') return;
+    input.dataset.geocoderAttached = 'true';
+    
+    // Hide original input
+    input.style.display = 'none';
+    
+    // Create wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'geocoder-wrapper';
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+    
+    // Create geocoder
+    const geocoder = new MapboxGeocoder({
+      accessToken: mapboxgl.accessToken,
+      types: 'address,place,region,postcode',
+      placeholder: input.placeholder || 'Enter address...',
+      marker: false,
+      minLength: 3
+    });
+    
+    wrapper.appendChild(geocoder.onAdd());
+    
+    // Sync selected address back to original input
+    geocoder.on('result', (e) => {
+      input.value = e.result.place_name;
+      if (e.result.center) {
+        input.setAttribute('data-lng', e.result.center[0]);
+        input.setAttribute('data-lat', e.result.center[1]);
+      }
+    });
+  });
+}
+function openModal(id) {
+    const overlay = document.getElementById(id);
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    const type = id === 'sendModal' ? 'send' : 'receive';
+    resetModal(type);
+    
+    // Wait for modal to render, then attach autocomplete
+    setTimeout(() => {
+      attachGeocoders();
+    }, 350);
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Close on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) closeModal(this.id);
+    });
+  });
+
+  // ESC key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(o => closeModal(o.id));
+    }
+  });
+
+  /* ── SERVICE CARD CLICKS ── */
+  document.querySelectorAll('.service-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.service-card').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      const modal = this.getAttribute('data-modal');
+      if (modal) openModal(modal);
+    });
+  });
+
+  /* ── SET MIN DATE FOR CALENDAR ── */
+  const dateInput = document.getElementById('s-date');
+  if (dateInput) {
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+    dateInput.value = today;
+  }
+
+  /* ── CASH FIELD TOGGLE (Receive Modal) ── */
+  function toggleCashFields(select) {
+    const isCash = select.value === 'cash';
+    document.querySelectorAll('.cash-fields').forEach(f => {
+      f.classList.toggle('show', isCash);
+    });
+    
+    // Also handle delivery type field visibility
+    const deliveryTypeField = document.getElementById('cashFields3');
+    if (deliveryTypeField) {
+      deliveryTypeField.style.display = isCash ? '' : 'none';
+      // Uncheck delivery type options when hiding
+      if (!isCash) {
+        document.getElementById('r-delivery-normal').checked = false;
+        document.getElementById('r-delivery-priority').checked = false;
+      }
+    }
+  }
+
+  /* ── SAME INFO AUTO-FILL ── */
+  let sameInfoChecked = false;
+  function toggleSameInfo() {
+    sameInfoChecked = !sameInfoChecked;
+    const box = document.getElementById('sameInfoBox');
+    box.classList.toggle('checked', sameInfoChecked);
+
+    if (sameInfoChecked) {
+      // Ensure all fields are filled
+      const nameEl = document.getElementById('rcp-name');
+      const phoneEl = document.getElementById('rcp-phone');
+      const emailEl = document.getElementById('rcp-email');
+      const addressEl = document.getElementById('rcp-address');
+      
+      const srcName = document.getElementById('r-name').value;
+      const srcPhone = document.getElementById('r-phone').value;
+      const srcEmail = document.getElementById('r-email').value;
+      const srcAddress = document.getElementById('r-address').value;
+      
+      nameEl.value = srcName;
+      phoneEl.value = srcPhone;
+      emailEl.value = srcEmail;
+      addressEl.value = srcAddress;
+      
+      // Force a change event to ensure the value updates
+      [nameEl, phoneEl, emailEl, addressEl].forEach(el => {
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      
+      // Lock fields with soft styling
+      ['rcp-name','rcp-phone','rcp-email','rcp-address'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.background = 'var(--orange-dim)';
+        el.style.borderColor = 'var(--orange-border)';
+        el.readOnly = true;
+      });
+    } else {
+      ['rcp-name','rcp-phone','rcp-email','rcp-address'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.background = ''; el.style.borderColor = '';
+        el.readOnly = false;
+      });
+    }
+  }
+  // Live sync when same-info is checked
+  ['r-name','r-phone','r-email','r-address'].forEach(srcId => {
+    document.getElementById(srcId).addEventListener('input', function() {
+      if (!sameInfoChecked) return;
+      const map = {'r-name':'rcp-name','r-phone':'rcp-phone','r-email':'rcp-email','r-address':'rcp-address'};
+      const targetEl = document.getElementById(map[srcId]);
+      targetEl.value = this.value;
+      targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  });
+  
+  /* ── DELIVERY TYPE CHECKBOXES ── */
+  // Prevent both checkboxes from being checked at the same time
+  document.getElementById('r-delivery-normal').addEventListener('change', function() {
+    if (this.checked) {
+      document.getElementById('r-delivery-priority').checked = false;
+    }
+  });
+  
+  document.getElementById('r-delivery-priority').addEventListener('change', function() {
+    if (this.checked) {
+      document.getElementById('r-delivery-normal').checked = false;
+    }
+  });
+
+  /* ── FILE UPLOAD HANDLER ── */
+  function handleUpload(input, areaId, previewImgId, nameId, sizeId) {
+    const file = input.files[0];
+    if (!file) return;
+    const area = document.getElementById(areaId);
+    area.classList.add('has-file');
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById(previewImgId).src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    document.getElementById(nameId).textContent = file.name;
+    document.getElementById(sizeId).textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+  }
+
+  /* ── TRACKING CODE GENERATOR ── */
+  /* ── TRACKING CODE GENERATOR (Updated - saves to admin) ── */
+  function generateCode(type) {
+    const rand = () => Math.random().toString(36).substring(2, 7).toUpperCase();
+    const code = 'SDT-' + rand() + '-US';
+
+    if (type === 'send') {
+      // Basic validation
+      const required = ['s-name','s-phone','s-email','s-pickup','s-delivery','s-type','s-date'];
+      let allFilled = true;
+      required.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) {
+          el.style.borderColor = '#E85D04';
+          el.style.boxShadow = '0 0 0 3px rgba(232,93,4,0.12)';
+          setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2000);
+          allFilled = false;
+        }
+      });
+      if (!allFilled) return;
+      
+      // Determine initial status based on package type
+      const packageType = document.getElementById('s-type').value;
+      const isCash = packageType === 'Cash / Currency';
+      const initialStatus = isCash ? 'awaiting_wire' : 'pending';
+      
+      // Create package object
+      const newPackage = {
+        trackingId: code,
+        status: initialStatus,
+        sender: document.getElementById('s-name').value,
+        recipient: document.getElementById('s-name').value, // Default to sender
+        pickup: document.getElementById('s-pickup').value,
+        delivery: document.getElementById('s-delivery').value,
+        type: packageType,
+        amount: 0, // Will be set in admin if cash
+        createdAt: new Date().toISOString(),
+        estimatedDelivery: new Date(Date.now() + 24*60*60*1000).toISOString(),
+        courier: {
+          name: "Pending Assignment",
+          phone: "N/A",
+          rating: 0,
+          photo: "PA"
+        },
+        locations: [
+          {
+            status: initialStatus === 'awaiting_wire' ? 'Waiting for Wire Transfer' : 'Package Created',
+            timestamp: new Date().toISOString(),
+            lat: 40.7128,
+            lng: -74.0060,
+            address: document.getElementById('s-pickup').value,
+            description: initialStatus === 'awaiting_wire' ? 
+              'Cash delivery — waiting to receive wire transfer before dispatching courier' : 
+              'Package registered in system. Awaiting courier assignment.'
+          }
+        ],
+        currentLocation: {
+          lat: 40.7128,
+          lng: -74.0060,
+          address: document.getElementById('s-pickup').value,
+          updatedAt: new Date().toISOString()
+        }
+      };
+      
+      // Save to localStorage (admin panel reads from here)
+      savePackageToAdmin(newPackage);
+      
+      // Show success
+      document.getElementById('sendTrackCode').textContent = code;
+      document.getElementById('sendFormBody').style.display = 'none';
+      document.getElementById('sendFooter').style.display  = 'none';
+      document.getElementById('sendSuccess').classList.add('show');
+      
+      // Update success message for cash deliveries
+      if (isCash) {
+        const successSub = document.querySelector('#sendSuccess .success-sub');
+        if (successSub) {
+          successSub.textContent = 'Your cash delivery request has been logged. Please complete the wire transfer using the details below. Once received, a courier will be dispatched.';
+        }
+        // Add wire info button to success screen
+        const trackingBox = document.querySelector('#sendSuccess .tracking-code-box');
+        if (trackingBox && !document.getElementById('successWireBtn')) {
+          const wireBtn = document.createElement('button');
+          wireBtn.id = 'successWireBtn';
+          wireBtn.style.cssText = 'display:block;width:100%;max-width:380px;margin:0 auto 16px;background:var(--orange);border:none;color:white;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);';
+          wireBtn.textContent = '🏦 View Wire Transfer Details';
+          wireBtn.onclick = () => {
+            closeModal('sendModal');
+            setTimeout(() => openWireModal(), 300);
+          };
+          trackingBox.parentNode.insertBefore(wireBtn, trackingBox);
+        }
+      }
+
+    } else {
+      // Receive modal
+      const required = ['r-name','r-phone','r-email','r-address','r-type','r-delivery','rcp-name','rcp-phone','rcp-email','rcp-address'];
+      let allFilled = true;
+      required.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) {
+          el.style.borderColor = '#E85D04';
+          el.style.boxShadow = '0 0 0 3px rgba(232,93,4,0.12)';
+          setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2000);
+          allFilled = false;
+        }
+      });
+      if (!allFilled) return;
+      
+      const rType = document.getElementById('r-type').value;
+      const isCash = rType === 'cash';
+      
+      // Check delivery type selection if cash
+      if (isCash) {
+        const normalChecked = document.getElementById('r-delivery-normal').checked;
+        const priorityChecked = document.getElementById('r-delivery-priority').checked;
+        if (!normalChecked && !priorityChecked) {
+          alert('Please select a delivery speed (Normal or Priority)');
+          return;
+        }
+      }
+      const initialStatus = isCash ? 'awaiting_wire' : 'pending';
+      
+      // Get delivery speed for cash transactions
+      let deliverySpeed = 'standard';
+      if (isCash) {
+        if (document.getElementById('r-delivery-priority').checked) {
+          deliverySpeed = 'priority';
+        } else if (document.getElementById('r-delivery-normal').checked) {
+          deliverySpeed = 'normal';
+        }
+      }
+      
+      const newPackage = {
+        trackingId: code,
+        status: initialStatus,
+        sender: document.getElementById('r-name').value,
+        recipient: document.getElementById('rcp-name').value,
+        pickup: document.getElementById('r-address').value,
+        delivery: document.getElementById('r-delivery').value,
+        type: isCash ? 'Cash / Currency' : document.getElementById('r-type').value,
+        amount: isCash ? (parseFloat(document.getElementById('r-amount')?.value) || 0) : 0,
+        deliverySpeed: deliverySpeed,
+        createdAt: new Date().toISOString(),
+        estimatedDelivery: new Date(Date.now() + 24*60*60*1000).toISOString(),
+        courier: {
+          name: "Pending Assignment",
+          phone: "N/A",
+          rating: 0,
+          photo: "PA"
+        },
+        locations: [
+          {
+            status: initialStatus === 'awaiting_wire' ? 'Waiting for Wire Transfer' : 'Package Created',
+            timestamp: new Date().toISOString(),
+            lat: 40.7128,
+            lng: -74.0060,
+            address: document.getElementById('r-address').value,
+            description: initialStatus === 'awaiting_wire' ? 
+              'Cash delivery — waiting to receive wire transfer before dispatching courier' : 
+              'Package registered in system. Awaiting courier assignment.'
+          }
+        ],
+        currentLocation: {
+          lat: 40.7128,
+          lng: -74.0060,
+          address: document.getElementById('r-pickup').value,
+          updatedAt: new Date().toISOString()
+        }
+      };
+      
+      savePackageToAdmin(newPackage);
+      
+      document.getElementById('receiveTrackCode').textContent = code;
+      document.getElementById('receiveFormBody').style.display = 'none';
+      document.getElementById('receiveFooter').style.display  = 'none';
+      document.getElementById('receiveSuccess').classList.add('show');
+    }
+  }
+  
+  /* ── Save new package to admin data store ── */
+  function savePackageToAdmin(pkg) {
+    // Get existing data from localStorage
+    let data = { packages: {}, wireInfo: {} };
+    const savedData = localStorage.getItem('sendit_admin_data');
+    
+    if (savedData) {
+      try {
+        data = JSON.parse(savedData);
+      } catch(e) {
+        console.error('Error parsing existing data:', e);
+        data = { packages: {}, wireInfo: {} };
+      }
+    }
+    
+    // Initialize packages if it doesn't exist
+    if (!data.packages) {
+      data.packages = {};
+    }
+    
+    // Add new package
+    data.packages[pkg.trackingId] = pkg;
+    
+    // Save back to localStorage
+    localStorage.setItem('sendit_admin_data', JSON.stringify(data));
+    
+    // Verify it saved
+    const verify = localStorage.getItem('sendit_admin_data');
+    const verified = verify ? JSON.parse(verify) : {};
+    
+    console.log('✅ Package saved to localStorage!');
+    console.log('📦 Tracking ID:', pkg.trackingId);
+    console.log('📊 Status:', pkg.status);
+    console.log('📋 Total packages in storage:', Object.keys(verified.packages || {}).length);
+    console.log('🔑 All tracking IDs:', Object.keys(verified.packages || {}));
+  }
+  /* ── COPY TRACKING CODE ── */
+  function copyCode(elId) {
+    const code = document.getElementById(elId).textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      const el = document.getElementById(elId);
+      const orig = el.textContent;
+      el.textContent = 'Copied!';
+      setTimeout(() => { el.textContent = orig; }, 1500);
+    });
+  }
+
+    /* ── WIRE INFORMATION MODAL ── */
+  async function openWireModal() {
+    openModal('wireModal');
+    const body = document.getElementById('wireModalBody');
+    
+    try {
+      // Try to load from localStorage first (admin panel saves there)
+      let wireInfo = null;
+      const savedData = localStorage.getItem('sendit_admin_data');
+      if (savedData) {
+        const data = JSON.parse(savedData);
+        wireInfo = data.wireInfo;
+      }
+      
+      // Fallback to API file
+      if (!wireInfo) {
+        const response = await fetch('api/data.json');
+        const data = await response.json();
+        wireInfo = data.wireInfo;
+      }
+      
+      if (wireInfo) {
+        body.innerHTML = `
+          <div class="form-section-label">Bank Wire Transfer</div>
+          <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:20px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+              <div>
+                <div style="color:var(--gray-400);font-size:11px;margin-bottom:2px;">Bank Name</div>
+                <div style="font-weight:600;">${wireInfo.bankName}</div>
+              </div>
+              <div>
+                <div style="color:var(--gray-400);font-size:11px;margin-bottom:2px;">Account Name</div>
+                <div style="font-weight:600;">${wireInfo.accountName}</div>
+              </div>
+              <div>
+                <div style="color:var(--gray-400);font-size:11px;margin-bottom:2px;">Account Number</div>
+                <div style="font-weight:600;font-family:'DM Mono',monospace;">${wireInfo.accountNumber}</div>
+              </div>
+              <div>
+                <div style="color:var(--gray-400);font-size:11px;margin-bottom:2px;">Routing Number</div>
+                <div style="font-weight:600;font-family:'DM Mono',monospace;">${wireInfo.routingNumber}</div>
+              </div>
+              <div>
+                <div style="color:var(--gray-400);font-size:11px;margin-bottom:2px;">SWIFT Code</div>
+                <div style="font-weight:600;font-family:'DM Mono',monospace;">${wireInfo.swiftCode}</div>
+              </div>
+              <div>
+                <div style="color:var(--gray-400);font-size:11px;margin-bottom:2px;">Bank Address</div>
+                <div style="font-weight:600;font-size:12px;">${wireInfo.bankAddress}</div>
+              </div>
+            </div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200);">
+              <div style="color:var(--gray-400);font-size:11px;margin-bottom:4px;">Instructions</div>
+              <div style="font-size:12.5px;color:var(--gray-600);line-height:1.6;">${wireInfo.instructions}</div>
+            </div>
+          </div>
+          
+          <div class="form-section-label" style="margin-top:28px;">Cryptocurrency</div>
+          <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:20px;">
+            ${wireInfo.bitcoin ? `
+            <div style="margin-bottom:12px;">
+              <div style="color:var(--gray-400);font-size:11px;margin-bottom:4px;">Bitcoin (BTC)</div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;background:white;padding:8px 12px;border-radius:6px;word-break:break-all;border:1px solid var(--gray-200);">${wireInfo.bitcoin}</div>
+            </div>` : ''}
+            ${wireInfo.ethereum ? `
+            <div style="margin-bottom:12px;">
+              <div style="color:var(--gray-400);font-size:11px;margin-bottom:4px;">Ethereum (ETH)</div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;background:white;padding:8px 12px;border-radius:6px;word-break:break-all;border:1px solid var(--gray-200);">${wireInfo.ethereum}</div>
+            </div>` : ''}
+            ${wireInfo.usdt ? `
+            <div>
+              <div style="color:var(--gray-400);font-size:11px;margin-bottom:4px;">USDT</div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;background:white;padding:8px 12px;border-radius:6px;word-break:break-all;border:1px solid var(--gray-200);">${wireInfo.usdt}</div>
+            </div>` : ''}
+          </div>
+        `;
+      }
+    } catch (error) {
+      body.innerHTML = `
+        <div style="text-align:center;padding:20px;color:#991B1B;">
+          Unable to load wire information. Please try again later.
+        </div>
+      `;
+    }
+  }
+
+
+  /* ── RESET MODAL ── */
+  function resetModal(type) {
+    sameInfoChecked = false;
+    if (type === 'send') {
+      document.getElementById('sendFormBody').style.display = '';
+      document.getElementById('sendFooter').style.display   = '';
+      document.getElementById('sendSuccess').classList.remove('show');
+      document.getElementById('s-upload-area').classList.remove('has-file');
+      // Remove dynamic wire button if exists
+      const wireBtn = document.getElementById('successWireBtn');
+      if (wireBtn) wireBtn.remove();
+    } else {
+      document.getElementById('receiveFormBody').style.display = '';
+      document.getElementById('receiveFooter').style.display   = '';
+      document.getElementById('receiveSuccess').classList.remove('show');
+      document.getElementById('sameInfoBox').classList.remove('checked');
+      document.querySelectorAll('.cash-fields').forEach(f => f.classList.remove('show'));
+      ['rcp-name','rcp-phone','rcp-email','rcp-address'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.background = ''; el.style.borderColor = '';
+        el.readOnly = false;
+      });
+    }
+  }
+</script>
+</body>
+</html>

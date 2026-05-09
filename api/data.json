@@ -1,0 +1,61 @@
+{
+  "packages": {
+    "SDT-12345-US": {
+      "trackingId": "SDT-12345-US",
+      "status": "in_transit",
+      "sender": {
+        "name": "John Doe",
+        "phone": "+1 (555) 123-4567",
+        "email": "john@example.com"
+      },
+      "recipient": {
+        "name": "Jane Smith",
+        "phone": "+1 (555) 987-6543",
+        "email": "jane@example.com"
+      },
+      "pickup": "123 Main St, New York, NY 10001",
+      "delivery": "456 Oak Ave, Los Angeles, CA 90210",
+      "packageType": "Cash / Currency",
+      "amount": 500,
+      "size": "Small (fits in a shoebox)",
+      "weight": 1,
+      "quantity": 1,
+      "description": "Cash delivery - handle with care",
+      "courier": {
+        "name": "Mike Johnson",
+        "rating": 4.8,
+        "phone": "+1 (555) 111-2222"
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "estimatedDelivery": "2024-01-15T18:00:00Z",
+      "locations": [
+        {
+          "status": "Waiting for Wire Transfer",
+          "timestamp": "2024-01-15T10:00:00Z",
+          "lat": 40.7128,
+          "lng": -74.0060,
+          "address": "123 Main St, New York, NY 10001",
+          "description": "Cash delivery — waiting to receive wire transfer before dispatching courier"
+        }
+      ],
+      "currentLocation": {
+        "lat": 40.7589,
+        "lng": -73.9851,
+        "address": "Times Square, New York, NY",
+        "updatedAt": "2024-01-15T14:30:00Z"
+      }
+    }
+  },
+  "wireInfo": {
+    "bankName": "Chase Bank",
+    "accountName": "SendIt Technologies Inc.",
+    "accountNumber": "****4567",
+    "routingNumber": "****8901",
+    "swiftCode": "CHASUS33",
+    "bankAddress": "270 Park Avenue, New York, NY 10017",
+    "instructions": "Please include your tracking ID as reference. Funds will be available within 1-2 business days after confirmation.",
+    "bitcoin": "bc1qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "ethereum": "0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "usdt": "0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  }
+}

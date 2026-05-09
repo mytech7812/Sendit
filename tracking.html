@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track Package - SendIt</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Mapbox GL JS -->
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+<!-- Mapbox Geocoder -->
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.3/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.3/mapbox-gl-geocoder.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --orange: #E85D04;
+    --orange-light: #F77F00;
+    --orange-dim: rgba(232,93,4,0.10);
+    --white: #FFFFFF;
+    --gray-50: #F9F8F6;
+    --gray-100: #F0EDE8;
+    --gray-200: #E2DDD7;
+    --gray-300: #C8C2BA;
+    --gray-400: #9B9389;
+    --gray-600: #5E584F;
+    --gray-800: #2C2820;
+    --navy: #111827;
+    --green: #059669;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  body {
+    background: var(--gray-50);
+    color: var(--gray-800);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  .nav-top {
+    background: white;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--gray-800);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--orange); }
+  .nav-back {
+    color: var(--gray-600);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-back:hover { color: var(--orange); }
+
+  .tracking-header {
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .tracking-id-display {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--orange);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .status-badge.pending { background: #FEF3C7; color: #92400E; }
+  .status-badge.picked_up { background: #DBEAFE; color: #1E40AF; }
+  .status-badge.in_transit { background: #DCFCE7; color: #166534; }
+  .status-badge.out_for_delivery { background: #FED7AA; color: #9A3412; }
+  .status-badge.delivered { background: #D1FAE5; color: #065F46; }
+  .status-badge.cancelled { background: #FEE2E2; color: #991B1B; }
+  .status-badge.awaiting_wire { background: #FEF3C7; color: #92400E; }
+  .status-badge.wire_received { background: #D1FAE5; color: #065F46; }
+  .status-badge.courier_assigned { background: #DBEAFE; color: #1E40AF; }
+  
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.08); }
+  }
+
+  .tracking-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 24px;
+  }
+
+  .map-container {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    height: 500px;
+    position: sticky;
+    top: 24px;
+  }
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Mapbox Geocoder styling override */
+  .mapboxgl-ctrl-geocoder {
+    min-width: 280px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border-radius: 8px;
+  }
+  .mapboxgl-ctrl-geocoder input {
+    padding: 10px 40px 10px 14px;
+  }
+
+  .timeline-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .info-card {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .info-card h3 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 16px;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 14px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: var(--gray-400); }
+  .info-value { font-weight: 500; color: var(--gray-800); }
+
+  .courier-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: var(--gray-50);
+    border-radius: 12px;
+    margin-top: 12px;
+  }
+  .courier-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--orange-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--orange);
+  }
+  .courier-info h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .courier-info p {
+    font-size: 13px;
+    color: var(--gray-400);
+    margin-top: 2px;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 40px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--gray-200);
+  }
+  .timeline-item {
+    position: relative;
+    padding-bottom: 32px;
+  }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-dot {
+    position: absolute;
+    left: -33px;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid var(--gray-400);
+    z-index: 1;
+  }
+  .timeline-item.completed .timeline-dot {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .timeline-item.current .timeline-dot {
+    background: var(--orange);
+    border-color: var(--orange);
+    animation: pulse 2s infinite;
+  }
+  .timeline-time {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+  }
+  .timeline-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .timeline-desc {
+    font-size: 13px;
+    color: var(--gray-600);
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray-400);
+  }
+  .error-message {
+    text-align: center;
+    padding: 40px;
+    color: #991B1B;
+    background: #FEE2E2;
+    border-radius: 12px;
+  }
+
+  @media (max-width: 1024px) {
+    .tracking-grid {
+      grid-template-columns: 1fr;
+    }
+    .map-container {
+      height: 300px;
+      position: static;
+    }
+    .mapboxgl-ctrl-geocoder {
+      min-width: 200px;
+    }
+  }
+</style>
+</head>
+<body>
+<nav class="nav-top">
+  <a href="index.html" class="nav-logo">Send<span>It</span></a>
+  <a href="index.html" class="nav-back">
+    ← Back to Home
+  </a>
+</nav>
+
+<div class="container" id="app">
+  <div class="loading">Loading tracking information...</div>
+</div>
+
+<script>
+// ── MAPBOX TOKEN ──
+mapboxgl.accessToken = 'pk.eyJ1IjoidGVjaDc4MTIiLCJhIjoiY21veTRtdHowMGhndjJyc2RyMHp4b2U5YSJ9.VTbGhmlq1noVoh5YuCP0Xw';
+
+let map;
+let geocoder;
+
+// Get tracking ID from URL
+const urlParams = new URLSearchParams(window.location.search);
+const trackingId = urlParams.get('id') || urlParams.get('tracking');
+
+if (!trackingId) {
+  document.getElementById('app').innerHTML = `
+    <div class="error-message">
+      <h3>No Tracking ID Provided</h3>
+      <p style="margin-top:8px;">Please provide a tracking ID to view your package status.</p>
+    </div>
+  `;
+} else {
+  loadTrackingData(trackingId);
+  
+  // Auto-refresh every 30 seconds
+  setInterval(() => loadTrackingData(trackingId, true), 30000);
+}
+
+async function loadTrackingData(id, silent = false) {
+  if (!silent) {
+    document.getElementById('app').innerHTML = '<div class="loading"><div style="font-size:32px;margin-bottom:12px;">📍</div>Loading tracking information...</div>';
+  }
+  
+  try {
+    // Check localStorage first (for newly generated codes)
+    let pkg = null;
+    const savedData = localStorage.getItem('sendit_admin_data');
+    
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        if (data.packages && data.packages[id]) {
+          pkg = data.packages[id];
+        }
+      } catch(e) {}
+    }
+    
+    // Fallback to JSON file
+    if (!pkg) {
+      try {
+        const response = await fetch('api/data.json');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.packages && data.packages[id]) {
+            pkg = data.packages[id];
+          }
+        }
+      } catch(e) {}
+    }
+    
+    if (!pkg) {
+      document.getElementById('app').innerHTML = `
+        <div class="error-message">
+          <h3>Package Not Found</h3>
+          <p style="margin-top:8px;">No package found with tracking ID: <strong>${escapeHtml(id)}</strong></p>
+          <p style="margin-top:4px;font-size:13px;color:#B91C1C;">If you just generated this code, it may take a moment to appear.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    renderTrackingPage(pkg);
+  } catch (error) {
+    console.error('Error loading tracking:', error);
+    document.getElementById('app').innerHTML = `
+      <div class="error-message">
+        <h3>Error Loading Data</h3>
+        <p style="margin-top:8px;">Unable to fetch tracking information. Please try again.</p>
+      </div>
+    `;
+  }
+}
+
+function renderTrackingPage(pkg) {
+  const statusMap = {
+    'awaiting_wire': '🏦 Waiting for Wire Transfer',
+    'wire_received': '✅ Wire Received — Processing',
+    'pending': '📋 Awaiting Pickup',
+    'courier_assigned': '👤 Courier Assigned',
+    'picked_up': '📦 Picked Up',
+    'in_transit': '🚚 In Transit',
+    'out_for_delivery': '🏃 Out for Delivery',
+    'delivered': '✅ Delivered',
+    'cancelled': '❌ Cancelled'
+  };
+
+  const currentStatus = statusMap[pkg.status] || pkg.status.replace(/_/g, ' ');
+
+  const html = `
+    <div class="tracking-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Tracking ID</div>
+          <div class="tracking-id-display">${pkg.trackingId}</div>
+        </div>
+        <span class="status-badge ${pkg.status}">
+          <span class="status-dot" style="background:${pkg.status === 'delivered' ? '#059669' : pkg.status === 'cancelled' ? '#DC2626' : '#E85D04'}"></span>
+          ${currentStatus}
+        </span>
+      </div>
+      <div style="margin-top:12px;font-size:13px;color:var(--gray-400);">
+        Est. Delivery: ${new Date(pkg.estimatedDelivery).toLocaleString()}
+      </div>
+    </div>
+
+    <div class="tracking-grid">
+      <div class="map-container">
+        <div id="map"></div>
+      </div>
+
+      <div class="timeline-container">
+        <div class="info-card">
+          <h3>📦 Package Details</h3>
+          <div class="info-row">
+            <span class="info-label">Type</span>
+            <span class="info-value">${escapeHtml(pkg.type)}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">From</span>
+            <span class="info-value">${escapeHtml(pkg.pickup)}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Current Location</span>
+            <span class="info-value">${escapeHtml(pkg.currentLocation.address || 'Location not specified')}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">To</span>
+            <span class="info-value">${escapeHtml(pkg.delivery)}</span>
+          </div>
+          ${pkg.amount > 0 ? `
+          <div class="info-row">
+            <span class="info-label">Amount</span>
+            <span class="info-value" style="color:var(--orange);font-weight:700;">$${pkg.amount.toLocaleString()}</span>
+          </div>
+          ` : ''}
+          <div class="info-row">
+            <span class="info-label">Created</span>
+            <span class="info-value">${new Date(pkg.createdAt).toLocaleString()}</span>
+          </div>
+
+          <div class="courier-card">
+            <div class="courier-avatar">${pkg.courier.photo}</div>
+            <div class="courier-info">
+              <h4>${escapeHtml(pkg.courier.name)}</h4>
+              <p>📱 ${pkg.courier.phone} | ⭐ ${pkg.courier.rating}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>📍 Delivery Timeline</h3>
+          <div class="timeline">
+            ${(() => {
+              // Create a copy of locations to modify
+              let timelineLocations = [...pkg.locations];
+              
+              // Add "wire received" status if package was awaiting wire and now has a different status
+              if (pkg.status !== 'awaiting_wire' && timelineLocations.some(loc => loc.status === 'Waiting for Wire Transfer')) {
+                const wireReceivedUpdate = {
+                  status: 'Wire Received — Processing',
+                  timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+                  lat: pkg.currentLocation.lat,
+                  lng: pkg.currentLocation.lng,
+                  address: pkg.currentLocation.address || 'Processing Center',
+                  description: 'Wire transfer confirmed. Preparing for courier assignment.'
+                };
+                timelineLocations.splice(1, 0, wireReceivedUpdate); // Insert after first location
+              }
+              
+              return timelineLocations.map((loc, i) => {
+                const isLast = i === timelineLocations.length - 1;
+                const isCurrent = isLast && pkg.status !== 'delivered' && pkg.status !== 'cancelled';
+                return `
+                  <div class="timeline-item ${isCurrent ? 'current' : 'completed'}">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-time">${new Date(loc.timestamp).toLocaleString()}</div>
+                    <div class="timeline-title">${loc.status}</div>
+                    <div class="timeline-desc">${escapeHtml(loc.description)} — ${escapeHtml(loc.address)}</div>
+                  </div>
+                `;
+              }).join('');
+            })()}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('app').innerHTML = html;
+
+  // Initialize map after DOM update
+  setTimeout(() => initMap(pkg), 200);
+}
+
+function initMap(pkg) {
+  // Destroy existing map instance if it exists
+  if (map) {
+    map.remove();
+    map = null;
+  }
+
+  // Initialize Mapbox map
+  map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [pkg.currentLocation.lng, pkg.currentLocation.lat],
+    zoom: 11
+  });
+
+  // Add navigation controls (zoom + rotate)
+  map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+  // Add fullscreen control
+  map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+
+  // Add geocoder (address search)
+  geocoder = new MapboxGeocoder({
+    accessToken: mapboxgl.accessToken,
+    mapboxgl: mapboxgl,
+    placeholder: '🔍 Search any address...',
+    marker: false
+  });
+  map.addControl(geocoder, 'top-left');
+
+  // Wait for map to load before adding markers
+  map.on('load', () => {
+    // ── ADD PICKUP MARKER ──
+    const pickupLoc = pkg.locations[0];
+    
+    // Create custom HTML element for pickup marker
+    const pickupEl = document.createElement('div');
+    pickupEl.innerHTML = '<div style="background:#059669;color:white;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 3px 10px rgba(0,0,0,0.25);border:3px solid white;cursor:pointer;">📦</div>';
+    
+    new mapboxgl.Marker({ element: pickupEl })
+      .setLngLat([pickupLoc.lng, pickupLoc.lat])
+      .setPopup(new mapboxgl.Popup({ offset: 20 }).setHTML(`
+        <div style="font-family:'Inter',sans-serif;padding:4px;min-width:180px;">
+          <strong style="font-size:14px;">📦 Pickup Point</strong><br/>
+          <span style="font-size:12px;color:#374151;">${escapeHtml(pickupLoc.address)}</span><br/>
+          <span style="font-size:11px;color:#9CA3AF;">${new Date(pickupLoc.timestamp).toLocaleString()}</span>
+        </div>
+      `))
+      .addTo(map);
+
+    // ── ADD DELIVERY MARKER (if applicable) ──
+    if (['delivered', 'out_for_delivery', 'in_transit'].includes(pkg.status) && pkg.locations.length > 1) {
+      const lastLoc = pkg.locations[pkg.locations.length - 1];
+      const deliveryEl = document.createElement('div');
+      deliveryEl.innerHTML = '<div style="background:#E85D04;color:white;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 3px 10px rgba(0,0,0,0.25);border:3px solid white;cursor:pointer;">📍</div>';
+      
+      new mapboxgl.Marker({ element: deliveryEl })
+        .setLngLat([lastLoc.lng, lastLoc.lat])
+        .setPopup(new mapboxgl.Popup({ offset: 20 }).setHTML(`
+          <div style="font-family:'Inter',sans-serif;padding:4px;min-width:180px;">
+            <strong style="font-size:14px;">📍 Delivery Point</strong><br/>
+            <span style="font-size:12px;color:#374151;">${escapeHtml(lastLoc.address)}</span><br/>
+            <span style="font-size:11px;color:#9CA3AF;">${new Date(lastLoc.timestamp).toLocaleString()}</span>
+          </div>
+        `))
+        .addTo(map);
+    }
+
+    // ── ADD COURIER CURRENT LOCATION MARKER ──
+    const courierEl = document.createElement('div');
+    const isActive = !['delivered', 'cancelled'].includes(pkg.status);
+    courierEl.innerHTML = `<div style="background:#2563EB;color:white;border-radius:50%;width:${isActive ? '48px' : '38px'};height:${isActive ? '48px' : '38px'};display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 14px rgba(37,99,235,0.4);border:3px solid white;cursor:pointer;${isActive ? 'animation: pulse 2s infinite;' : ''}">🚗</div>`;
+    
+    const courierMarker = new mapboxgl.Marker({ element: courierEl })
+      .setLngLat([pkg.currentLocation.lng, pkg.currentLocation.lat])
+      .setPopup(new mapboxgl.Popup({ offset: 20 }).setHTML(`
+        <div style="font-family:'Inter',sans-serif;padding:4px;min-width:200px;">
+          <strong style="font-size:14px;">🚗 ${isActive ? 'Current Courier Location' : 'Final Courier Location'}</strong><br/>
+          <span style="font-size:12px;color:#374151;">${escapeHtml(pkg.currentLocation.address || pkg.locations[pkg.locations.length-1].address)}</span><br/>
+          <span style="font-size:11px;color:#9CA3AF;">Updated: ${new Date(pkg.currentLocation.updatedAt).toLocaleString()}</span>
+          ${pkg.courier.name !== 'Pending Assignment' ? `<br/><span style="font-size:11px;color:#374151;">👤 ${escapeHtml(pkg.courier.name)} | ⭐ ${pkg.courier.rating}</span>` : ''}
+        </div>
+      `))
+      .addTo(map);
+
+    // ── DRAW ROUTE LINE ──
+    if (pkg.locations.length > 1) {
+      const coordinates = pkg.locations.map(loc => [loc.lng, loc.lat]);
+      
+      map.addSource('route', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: coordinates
+          }
+        }
+      });
+
+      map.addLayer({
+        id: 'route-line',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#E85D04',
+          'line-width': 4,
+          'line-opacity': 0.8
+        }
+      });
+
+      // Add dashed overlay for visual effect
+      map.addLayer({
+        id: 'route-dash',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#FFF',
+          'line-width': 2,
+          'line-dasharray': [0, 4, 8, 4]
+        }
+      });
+
+      // Fit map to show entire route
+      const bounds = new mapboxgl.LngLatBounds();
+      coordinates.forEach(coord => bounds.extend(coord));
+      map.fitBounds(bounds, { padding: 100, maxZoom: 13, duration: 1500 });
+    } else {
+      // Just center on the single point
+      map.flyTo({
+        center: [pkg.currentLocation.lng, pkg.currentLocation.lat],
+        zoom: 13,
+        duration: 1000
+      });
+    }
+
+    // Open courier popup by default
+    courierMarker.togglePopup();
+  });
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SendIt Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --orange: #E85D04;
+    --orange-light: #F77F00;
+    --orange-dim: rgba(232,93,4,0.10);
+    --white: #FFFFFF;
+    --gray-50: #F9F8F6;
+    --gray-100: #F0EDE8;
+    --gray-200: #E2DDD7;
+    --gray-300: #C8C2BA;
+    --gray-400: #9B9389;
+    --gray-600: #5E584F;
+    --gray-800: #2C2820;
+    --navy: #111827;
+    --green: #059669;
+    --red: #DC2626;
+    --blue: #2563EB;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+  }
+
+  body {
+    background: var(--gray-50);
+    color: var(--gray-800);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .admin-layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 260px;
+    background: var(--navy);
+    color: white;
+    padding: 24px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+  }
+  .sidebar-logo {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 32px;
+  }
+  .sidebar-logo span { color: var(--orange); }
+  .sidebar-nav {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sidebar-nav a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .sidebar-nav a:hover, .sidebar-nav a.active {
+    background: rgba(255,255,255,0.1);
+    color: white;
+  }
+  .sidebar-nav a .icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Main Content */
+  .main-content {
+    flex: 1;
+    margin-left: 260px;
+    padding: 32px;
+  }
+  .page-header {
+    margin-bottom: 32px;
+  }
+  .page-header h1 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--navy);
+  }
+  .page-header p {
+    color: var(--gray-400);
+    margin-top: 4px;
+  }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .stat-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--navy);
+  }
+
+  /* Cards */
+  .card {
+    background: white;
+    padding: 24px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    margin-bottom: 24px;
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 16px;
+  }
+
+  /* Table */
+  .table-container {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    border-bottom: 2px solid var(--gray-200);
+  }
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 13px;
+  }
+  .mono { font-family: var(--font-mono); font-size: 12px; }
+
+  /* Status Badges */
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge.pending { background: #FEF3C7; color: #92400E; }
+  .badge.picked_up { background: #DBEAFE; color: #1E40AF; }
+  .badge.in_transit { background: #DCFCE7; color: #166534; }
+  .badge.out_for_delivery { background: #FED7AA; color: #9A3412; }
+  .badge.delivered { background: #D1FAE5; color: #065F46; }
+
+  /* Buttons */
+  .btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary { background: var(--orange); color: white; }
+  .btn-primary:hover { background: var(--orange-light); }
+  .btn-sm { padding: 6px 12px; font-size: 11px; }
+  .btn-outline {
+    background: none;
+    border: 1px solid var(--gray-300);
+    color: var(--gray-600);
+  }
+  .btn-outline:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+  }
+
+  /* Section Tabs */
+  .section {
+    display: none;
+  }
+  .section.active {
+    display: block;
+  }
+
+  /* Form Styles */
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin-bottom: 6px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: var(--font-body);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(232,93,4,0.1);
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .success-message {
+    background: #D1FAE5;
+    color: #065F46;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+    display: none;
+  }
+  .success-message.show { display: block; }
+
+  @media (max-width: 1024px) {
+    .sidebar {
+      width: 200px;
+    }
+    .main-content {
+      margin-left: 200px;
+      padding: 20px;
+    }
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="admin-layout">
+  
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Send<span>It</span> <small style="font-size:12px;color:rgba(255,255,255,0.4);">ADMIN</small></div>
+    <ul class="sidebar-nav">
+      <li><a href="#dashboard" class="active" data-section="dashboard">
+        <span class="icon">📊</span> Dashboard
+      </a></li>
+      <li><a href="#packages" data-section="packages">
+        <span class="icon">📦</span> Packages
+      </a></li>
+      <li><a href="#wire-info" data-section="wire-info">
+        <span class="icon">🏦</span> Wire Information
+      </a></li>
+      <li><a href="index.html">
+        <span class="icon">🏠</span> Back to Site
+      </a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Dashboard Section -->
+    <section class="section active" id="dashboard-section">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Overview of all package deliveries</p>
+      </div>
+      <div class="stats-grid" id="statsGrid"></div>
+      
+      <div class="card">
+        <div class="card-title">Recent Packages</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Tracking ID</th>
+                <th>Sender</th>
+                <th>Status</th>
+                <th>Amount</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recentPackages"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Packages Section -->
+    <section class="section" id="packages-section">
+      <div class="page-header">
+        <h1>Manage Packages</h1>
+        <p>Update package status, locations, and courier information</p>
+      </div>
+      <div class="card">
+        <div class="card-title">All Packages</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Tracking ID</th>
+                <th>Sender</th>
+                <th>Recipient</th>
+                <th>Status</th>
+                <th>Courier</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="allPackages"></tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Edit Package Modal (inline) -->
+      <div class="card" id="editPackageForm" style="display:none;">
+        <div class="card-title">Edit Package</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tracking ID</label>
+            <input type="text" class="form-input" id="edit-trackingId" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+<select class="form-select" id="edit-status">
+  <option value="awaiting_wire">🏦 Waiting for Wire Transfer</option>
+  <option value="wire_received">✅ Wire Received — Processing</option>
+  <option value="pending">📋 Awaiting Pickup</option>
+  <option value="courier_assigned">👤 Courier Assigned</option>
+  <option value="picked_up">📦 Picked Up</option>
+  <option value="in_transit">🚚 In Transit</option>
+  <option value="out_for_delivery">🏃 Out for Delivery</option>
+  <option value="delivered">✅ Delivered</option>
+  <option value="cancelled">❌ Cancelled</option>
+</select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sender Name</label>
+            <input type="text" class="form-input" id="edit-sender">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Recipient Name</label>
+            <input type="text" class="form-input" id="edit-recipient">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Courier Name</label>
+            <input type="text" class="form-input" id="edit-courier">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Courier Phone</label>
+            <input type="text" class="form-input" id="edit-courierPhone">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Amount ($)</label>
+            <input type="number" class="form-input" id="edit-amount">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Current Location (Address)</label>
+            <input type="text" class="form-input" id="edit-location" placeholder="e.g. 123 Main St, New York, NY">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label">Add Location Update</label>
+            <textarea class="form-textarea" id="edit-newLocation" placeholder="Description of location update..."></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="savePackage()" style="margin-top:12px;">💾 Save Changes</button>
+        <span style="margin-left:12px;font-size:12px;color:var(--gray-400);">Note: Changes are saved to localStorage (demo mode)</span>
+      </div>
+    </section>
+
+    <!-- Wire Information Section -->
+    <section class="section" id="wire-info-section">
+      <div class="page-header">
+        <h1>Wire Information</h1>
+        <p>Manage bank and crypto payment details shown to users</p>
+      </div>
+      <div class="card">
+        <div class="success-message" id="wireSuccess">✅ Wire information updated successfully!</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Bank Name</label>
+            <input type="text" class="form-input" id="wire-bankName" placeholder="e.g. Chase Bank">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account Name</label>
+            <input type="text" class="form-input" id="wire-accountName" placeholder="e.g. SendIt Technologies Inc.">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account Number</label>
+            <input type="text" class="form-input" id="wire-accountNumber" placeholder="e.g. ****4567">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Routing Number</label>
+            <input type="text" class="form-input" id="wire-routingNumber" placeholder="e.g. ****8901">
+          </div>
+          <div class="form-group">
+            <label class="form-label">SWIFT Code</label>
+            <input type="text" class="form-input" id="wire-swiftCode" placeholder="e.g. CHASUS33">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bank Address</label>
+            <input type="text" class="form-input" id="wire-bankAddress" placeholder="e.g. 270 Park Avenue, New York, NY 10017">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label">Wire Instructions</label>
+            <textarea class="form-textarea" id="wire-instructions" placeholder="Instructions for wire transfers..."></textarea>
+          </div>
+          
+          <div style="grid-column: 1 / -1;">
+            <h4 style="margin-bottom:12px;color:var(--navy);">Cryptocurrency Addresses</h4>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bitcoin (BTC)</label>
+            <input type="text" class="form-input" id="wire-bitcoin" placeholder="BTC address">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ethereum (ETH)</label>
+            <input type="text" class="form-input" id="wire-ethereum" placeholder="ETH address">
+          </div>
+          <div class="form-group">
+            <label class="form-label">USDT (TRC20/ERC20)</label>
+            <input type="text" class="form-input" id="wire-usdt" placeholder="USDT address">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveWireInfo()" style="margin-top:16px;">💾 Save Wire Information</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// ── DATA STORE (using localStorage for demo) ──
+const DEFAULT_DATA = {
+  packages: {
+    "SDT-48302-US": {
+      trackingId: "SDT-48302-US",
+      status: "out_for_delivery",
+      sender: "Marcus Johnson",
+      recipient: "Robert Williams",
+      pickup: "123 Main St, Austin, TX 78701",
+      delivery: "456 Oak Ave, Houston, TX 77001",
+      type: "Cash / Currency",
+      amount: 2400,
+      createdAt: "2026-05-09T10:30:00Z",
+      estimatedDelivery: "2026-05-09T16:00:00Z",
+      courier: { name: "James Wilson", phone: "+1-555-0123", rating: 4.9, photo: "JW" },
+      locations: [
+        { status: "Package Created", timestamp: "2026-05-09T10:30:00Z", lat: 30.2672, lng: -97.7431, address: "Austin, TX", description: "Sender prepared package for pickup" },
+        { status: "Courier Assigned", timestamp: "2026-05-09T10:45:00Z", lat: 30.2672, lng: -97.7431, address: "Austin, TX", description: "James Wilson assigned to pickup" },
+        { status: "Picked Up", timestamp: "2026-05-09T11:15:00Z", lat: 30.2672, lng: -97.7431, address: "Austin, TX", description: "Package picked up by courier" },
+        { status: "In Transit", timestamp: "2026-05-09T12:30:00Z", lat: 30.0088, lng: -96.0088, address: "Between Austin and Houston", description: "Package in transit to destination" },
+        { status: "Out for Delivery", timestamp: "2026-05-09T14:00:00Z", lat: 29.7604, lng: -95.3698, address: "Houston, TX", description: "Package out for delivery" }
+      ],
+      currentLocation: { lat: 29.7604, lng: -95.3698, address: "Houston, TX", updatedAt: "2026-05-09T14:30:00Z" }
+    },
+    "SDT-00001-US": {
+      trackingId: "SDT-00001-US",
+      status: "pending",
+      sender: "John Doe",
+      recipient: "Jane Smith",
+      pickup: "789 Pine St, Chicago, IL 60601",
+      delivery: "321 Elm St, New York, NY 10001",
+      type: "Electronics",
+      amount: 0,
+      createdAt: "2026-05-09T09:00:00Z",
+      estimatedDelivery: "2026-05-10T12:00:00Z",
+      courier: { name: "Pending Assignment", phone: "N/A", rating: 0, photo: "PA" },
+      locations: [
+        { status: "Package Created", timestamp: "2026-05-09T09:00:00Z", lat: 41.8781, lng: -87.6298, address: "Chicago, IL", description: "Package registered in system" }
+      ],
+      currentLocation: { lat: 41.8781, lng: -87.6298, address: "Chicago, IL", updatedAt: "2026-05-09T09:00:00Z" }
+    }
+  },
+  wireInfo: {
+    bankName: "Chase Bank",
+    accountName: "SendIt Technologies Inc.",
+    accountNumber: "****4567",
+    routingNumber: "****8901",
+    swiftCode: "CHASUS33",
+    bankAddress: "270 Park Avenue, New York, NY 10017",
+    instructions: "Please include your tracking ID as reference. Funds will be available within 1-2 business days after confirmation.",
+    bitcoin: "bc1qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    ethereum: "0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    usdt: "0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  }
+};
+
+function getData() {
+  const saved = localStorage.getItem('sendit_admin_data');
+  if (saved) {
+    try { return JSON.parse(saved); } catch(e) {}
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function saveData(data) {
+  localStorage.setItem('sendit_admin_data', JSON.stringify(data));
+}
+
+// Also update the main JSON file proxy (for demo, we save to localStorage)
+// In production, this would be an API call
+function saveToApiFile(data) {
+  // In a real backend, this would POST to your server
+  // For demo, we save to localStorage which tracking.html will check
+  saveData(data);
+  
+  // Also try to update the JSON file if using a simple server
+  fetch('/api/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).catch(() => {
+    // Silently fail if no server - localStorage is our fallback
+  });
+}
+
+// ── NAVIGATION ──
+document.querySelectorAll('.sidebar-nav a[data-section]').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));
+    this.classList.add('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(this.dataset.section + '-section').classList.add('active');
+    
+    if (this.dataset.section === 'packages') loadPackages();
+    if (this.dataset.section === 'wire-info') loadWireInfo();
+  });
+});
+
+// ── LOAD DASHBOARD ──
+function loadDashboard() {
+  const data = getData();
+  const packages = Object.values(data.packages);
+  
+  // Stats
+  const total = packages.length;
+  const active = packages.filter(p => !['delivered','cancelled'].includes(p.status)).length;
+  const delivered = packages.filter(p => p.status === 'delivered').length;
+  const totalAmount = packages.reduce((sum, p) => sum + (p.amount || 0), 0);
+  
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-title">Total Packages</div>
+      <div class="stat-value">${total}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Active Deliveries</div>
+      <div class="stat-value">${active}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Delivered</div>
+      <div class="stat-value">${delivered}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Total Cash Value</div>
+      <div class="stat-value">$${totalAmount.toLocaleString()}</div>
+    </div>
+  `;
+  
+  // Recent packages table
+  const statusLabels = {
+    'pending': 'Awaiting Pickup',
+    'picked_up': 'Picked Up',
+    'in_transit': 'In Transit',
+    'out_for_delivery': 'Out for Delivery',
+    'delivered': 'Delivered',
+    'cancelled': 'Cancelled'
+  };
+  
+  document.getElementById('recentPackages').innerHTML = packages.map(p => `
+    <tr>
+      <td class="mono">${p.trackingId}</td>
+      <td>${p.sender}</td>
+      <td><span class="badge ${p.status}">${statusLabels[p.status]}</span></td>
+      <td>$${(p.amount || 0).toLocaleString()}</td>
+      <td>${new Date(p.createdAt).toLocaleDateString()}</td>
+      <td>
+        <a href="tracking.html?id=${p.trackingId}" class="btn btn-sm btn-outline">Track</a>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── LOAD PACKAGES ──
+function loadPackages() {
+  const data = getData();
+  const packages = Object.values(data.packages);
+  const statusLabels = {
+    'pending': 'Awaiting Pickup',
+    'picked_up': 'Picked Up',
+    'in_transit': 'In Transit',
+    'out_for_delivery': 'Out for Delivery',
+    'delivered': 'Delivered',
+    'cancelled': 'Cancelled'
+  };
+  
+  document.getElementById('allPackages').innerHTML = packages.map(p => `
+    <tr>
+      <td class="mono">${p.trackingId}</td>
+      <td>${p.sender}</td>
+      <td>${p.recipient}</td>
+      <td><span class="badge ${p.status}">${statusLabels[p.status]}</span></td>
+      <td>${p.courier.name}</td>
+      <td>
+        <button class="btn btn-sm btn-primary" onclick="editPackage('${p.trackingId}')">✏️ Edit</button>
+        <a href="tracking.html?id=${p.trackingId}" class="btn btn-sm btn-outline" style="margin-left:4px;">📍 Track</a>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── EDIT PACKAGE ──
+let editingPackageId = null;
+
+function editPackage(trackingId) {
+  const data = getData();
+  const pkg = data.packages[trackingId];
+  if (!pkg) return;
+  
+  editingPackageId = trackingId;
+  
+  document.getElementById('edit-trackingId').value = pkg.trackingId;
+  document.getElementById('edit-status').value = pkg.status;
+  document.getElementById('edit-sender').value = pkg.sender;
+  document.getElementById('edit-recipient').value = pkg.recipient;
+  document.getElementById('edit-courier').value = pkg.courier.name;
+  document.getElementById('edit-courierPhone').value = pkg.courier.phone;
+  document.getElementById('edit-amount').value = pkg.amount || 0;
+  document.getElementById('edit-location').value = pkg.currentLocation.address || `${pkg.currentLocation.lat}, ${pkg.currentLocation.lng}`;
+  document.getElementById('edit-newLocation').value = '';
+  
+  document.getElementById('editPackageForm').style.display = 'block';
+  document.getElementById('editPackageForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+function savePackage() {
+  if (!editingPackageId) return;
+  
+  const data = getData();
+  const pkg = data.packages[editingPackageId];
+  
+  // Update package fields
+  pkg.status = document.getElementById('edit-status').value;
+  pkg.sender = document.getElementById('edit-sender').value;
+  pkg.recipient = document.getElementById('edit-recipient').value;
+  pkg.courier.name = document.getElementById('edit-courier').value;
+  pkg.courier.phone = document.getElementById('edit-courierPhone').value;
+  pkg.amount = parseFloat(document.getElementById('edit-amount').value) || 0;
+  
+  // Update location (now supports addresses)
+  const locStr = document.getElementById('edit-location').value.trim();
+  if (locStr) {
+    // Check if it's coordinates (contains comma and numbers)
+    const coordMatch = locStr.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
+    if (coordMatch) {
+      const lat = parseFloat(coordMatch[1]);
+      const lng = parseFloat(coordMatch[2]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        pkg.currentLocation = { lat, lng, address: locStr, updatedAt: new Date().toISOString() };
+      }
+    } else {
+      // It's an address - keep existing coordinates but update address
+      pkg.currentLocation.address = locStr;
+      pkg.currentLocation.updatedAt = new Date().toISOString();
+    }
+  }
+  
+  // Add new location update if provided
+  const newLocDesc = document.getElementById('edit-newLocation').value.trim();
+  if (newLocDesc) {
+    const statusLabels = {
+      'pending': 'Awaiting Pickup',
+      'picked_up': 'Picked Up',
+      'in_transit': 'In Transit',
+      'out_for_delivery': 'Out for Delivery',
+      'delivered': 'Delivered',
+      'cancelled': 'Cancelled'
+    };
+    
+    pkg.locations.push({
+      status: statusLabels[pkg.status],
+      timestamp: new Date().toISOString(),
+      lat: pkg.currentLocation.lat,
+      lng: pkg.currentLocation.lng,
+      address: newLocDesc.split('-')[0]?.trim() || 'Location Update',
+      description: newLocDesc
+    });
+  }
+  
+  // Save
+  saveToApiFile(data);
+  
+  // Refresh
+  loadPackages();
+  document.getElementById('editPackageForm').style.display = 'none';
+  editingPackageId = null;
+  
+  alert('✅ Package updated successfully!');
+}
+
+// ── WIRE INFORMATION ──
+function loadWireInfo() {
+  const data = getData();
+  const w = data.wireInfo;
+  
+  document.getElementById('wire-bankName').value = w.bankName || '';
+  document.getElementById('wire-accountName').value = w.accountName || '';
+  document.getElementById('wire-accountNumber').value = w.accountNumber || '';
+  document.getElementById('wire-routingNumber').value = w.routingNumber || '';
+  document.getElementById('wire-swiftCode').value = w.swiftCode || '';
+  document.getElementById('wire-bankAddress').value = w.bankAddress || '';
+  document.getElementById('wire-instructions').value = w.instructions || '';
+  document.getElementById('wire-bitcoin').value = w.bitcoin || '';
+  document.getElementById('wire-ethereum').value = w.ethereum || '';
+  document.getElementById('wire-usdt').value = w.usdt || '';
+}
+
+function saveWireInfo() {
+  const data = getData();
+  
+  data.wireInfo = {
+    bankName: document.getElementById('wire-bankName').value,
+    accountName: document.getElementById('wire-accountName').value,
+    accountNumber: document.getElementById('wire-accountNumber').value,
+    routingNumber: document.getElementById('wire-routingNumber').value,
+    swiftCode: document.getElementById('wire-swiftCode').value,
+    bankAddress: document.getElementById('wire-bankAddress').value,
+    instructions: document.getElementById('wire-instructions').value,
+    bitcoin: document.getElementById('wire-bitcoin').value,
+    ethereum: document.getElementById('wire-ethereum').value,
+    usdt: document.getElementById('wire-usdt').value
+  };
+  
+  saveToApiFile(data);
+  
+  const successMsg = document.getElementById('wireSuccess');
+  successMsg.classList.add('show');
+  setTimeout(() => successMsg.classList.remove('show'), 3000);
+}
+
+// ── INIT ──
+loadDashboard();
+loadWireInfo();
+</script>
+</body>
+</html>
