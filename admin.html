@@ -491,89 +491,76 @@
 </div>
 
 <script>
-// ── DATA STORE (using localStorage for demo) ──
+// ── JSONBIN CONFIG ──
+const BIN_ID = '69ff3c24c0954111d8fbf348';
+const MASTER_KEY = '$2a$10$cPZxyG.c32PPYr.xHYwpuuXTyM.DuXPzWnKFg8zo3A2lKfzNaEu6i';
+
+// ── DEFAULT DATA ──
 const DEFAULT_DATA = {
-  packages: {
-    "SDT-48302-US": {
-      trackingId: "SDT-48302-US",
-      status: "out_for_delivery",
-      sender: "Marcus Johnson",
-      recipient: "Robert Williams",
-      pickup: "123 Main St, Austin, TX 78701",
-      delivery: "456 Oak Ave, Houston, TX 77001",
-      type: "Cash / Currency",
-      amount: 2400,
-      createdAt: "2026-05-09T10:30:00Z",
-      estimatedDelivery: "2026-05-09T16:00:00Z",
-      courier: { name: "James Wilson", phone: "+1-555-0123", rating: 4.9, photo: "JW" },
-      locations: [
-        { status: "Package Created", timestamp: "2026-05-09T10:30:00Z", lat: 30.2672, lng: -97.7431, address: "Austin, TX", description: "Sender prepared package for pickup" },
-        { status: "Courier Assigned", timestamp: "2026-05-09T10:45:00Z", lat: 30.2672, lng: -97.7431, address: "Austin, TX", description: "James Wilson assigned to pickup" },
-        { status: "Picked Up", timestamp: "2026-05-09T11:15:00Z", lat: 30.2672, lng: -97.7431, address: "Austin, TX", description: "Package picked up by courier" },
-        { status: "In Transit", timestamp: "2026-05-09T12:30:00Z", lat: 30.0088, lng: -96.0088, address: "Between Austin and Houston", description: "Package in transit to destination" },
-        { status: "Out for Delivery", timestamp: "2026-05-09T14:00:00Z", lat: 29.7604, lng: -95.3698, address: "Houston, TX", description: "Package out for delivery" }
-      ],
-      currentLocation: { lat: 29.7604, lng: -95.3698, address: "Houston, TX", updatedAt: "2026-05-09T14:30:00Z" }
-    },
-    "SDT-00001-US": {
-      trackingId: "SDT-00001-US",
-      status: "pending",
-      sender: "John Doe",
-      recipient: "Jane Smith",
-      pickup: "789 Pine St, Chicago, IL 60601",
-      delivery: "321 Elm St, New York, NY 10001",
-      type: "Electronics",
-      amount: 0,
-      createdAt: "2026-05-09T09:00:00Z",
-      estimatedDelivery: "2026-05-10T12:00:00Z",
-      courier: { name: "Pending Assignment", phone: "N/A", rating: 0, photo: "PA" },
-      locations: [
-        { status: "Package Created", timestamp: "2026-05-09T09:00:00Z", lat: 41.8781, lng: -87.6298, address: "Chicago, IL", description: "Package registered in system" }
-      ],
-      currentLocation: { lat: 41.8781, lng: -87.6298, address: "Chicago, IL", updatedAt: "2026-05-09T09:00:00Z" }
-    }
-  },
+  packages: {},
   wireInfo: {
-    bankName: "Chase Bank",
-    accountName: "SendIt Technologies Inc.",
-    accountNumber: "****4567",
-    routingNumber: "****8901",
-    swiftCode: "CHASUS33",
-    bankAddress: "270 Park Avenue, New York, NY 10017",
-    instructions: "Please include your tracking ID as reference. Funds will be available within 1-2 business days after confirmation.",
-    bitcoin: "bc1qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-    ethereum: "0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    usdt: "0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    bankName: "",
+    accountName: "",
+    accountNumber: "",
+    routingNumber: "",
+    swiftCode: "",
+    bankAddress: "",
+    instructions: "Please include your tracking ID as reference.",
+    bitcoin: "",
+    ethereum: "",
+    usdt: ""
   }
 };
 
-function getData() {
+// ── GLOBAL DATA ──
+let appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+
+// ── LOAD DATA FROM JSONBIN ──
+async function loadFromJSONBin() {
+  try {
+    const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': MASTER_KEY }
+    });
+    if (response.ok) {
+      const result = await response.json();
+      appData = result.record;
+      if (!appData.packages) appData.packages = {};
+      if (!appData.wireInfo) appData.wireInfo = {};
+      console.log('✅ Loaded from JSONBin:', Object.keys(appData.packages).length, 'packages');
+      return true;
+    }
+  } catch(e) {
+    console.error('JSONBin load failed, trying localStorage:', e);
+  }
+  
+  // Fallback to localStorage
   const saved = localStorage.getItem('sendit_admin_data');
   if (saved) {
-    try { return JSON.parse(saved); } catch(e) {}
+    try { appData = JSON.parse(saved); } catch(e) {}
   }
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+  return false;
 }
 
-function saveData(data) {
-  localStorage.setItem('sendit_admin_data', JSON.stringify(data));
-}
-
-// Also update the main JSON file proxy (for demo, we save to localStorage)
-// In production, this would be an API call
-function saveToApiFile(data) {
-  // In a real backend, this would POST to your server
-  // For demo, we save to localStorage which tracking.html will check
-  saveData(data);
-  
-  // Also try to update the JSON file if using a simple server
-  fetch('/api/save', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).catch(() => {
-    // Silently fail if no server - localStorage is our fallback
-  });
+// ── SAVE DATA TO JSONBIN ──
+async function saveToJSONBin() {
+  try {
+    await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': MASTER_KEY
+      },
+      body: JSON.stringify(appData)
+    });
+    console.log('✅ Saved to JSONBin');
+    // Also backup to localStorage
+    localStorage.setItem('sendit_admin_data', JSON.stringify(appData));
+    return true;
+  } catch(e) {
+    console.error('JSONBin save failed:', e);
+    localStorage.setItem('sendit_admin_data', JSON.stringify(appData));
+    return false;
+  }
 }
 
 // ── NAVIGATION ──
@@ -592,10 +579,7 @@ document.querySelectorAll('.sidebar-nav a[data-section]').forEach(link => {
 
 // ── LOAD DASHBOARD ──
 function loadDashboard() {
-  const data = getData();
-  const packages = Object.values(data.packages);
-  
-  // Stats
+  const packages = Object.values(appData.packages || {});
   const total = packages.length;
   const active = packages.filter(p => !['delivered','cancelled'].includes(p.status)).length;
   const delivered = packages.filter(p => p.status === 'delivered').length;
@@ -620,21 +604,23 @@ function loadDashboard() {
     </div>
   `;
   
-  // Recent packages table
   const statusLabels = {
-    'pending': 'Awaiting Pickup',
-    'picked_up': 'Picked Up',
-    'in_transit': 'In Transit',
-    'out_for_delivery': 'Out for Delivery',
-    'delivered': 'Delivered',
-    'cancelled': 'Cancelled'
+    'awaiting_wire': '🏦 Waiting for Wire',
+    'wire_received': '✅ Wire Received',
+    'pending': '📋 Awaiting Pickup',
+    'courier_assigned': '👤 Courier Assigned',
+    'picked_up': '📦 Picked Up',
+    'in_transit': '🚚 In Transit',
+    'out_for_delivery': '🏃 Out for Delivery',
+    'delivered': '✅ Delivered',
+    'cancelled': '❌ Cancelled'
   };
   
   document.getElementById('recentPackages').innerHTML = packages.map(p => `
     <tr>
       <td class="mono">${p.trackingId}</td>
       <td>${p.sender}</td>
-      <td><span class="badge ${p.status}">${statusLabels[p.status]}</span></td>
+      <td><span class="badge ${p.status}">${statusLabels[p.status] || p.status}</span></td>
       <td>$${(p.amount || 0).toLocaleString()}</td>
       <td>${new Date(p.createdAt).toLocaleDateString()}</td>
       <td>
@@ -646,15 +632,17 @@ function loadDashboard() {
 
 // ── LOAD PACKAGES ──
 function loadPackages() {
-  const data = getData();
-  const packages = Object.values(data.packages);
+  const packages = Object.values(appData.packages || {});
   const statusLabels = {
-    'pending': 'Awaiting Pickup',
-    'picked_up': 'Picked Up',
-    'in_transit': 'In Transit',
-    'out_for_delivery': 'Out for Delivery',
-    'delivered': 'Delivered',
-    'cancelled': 'Cancelled'
+    'awaiting_wire': '🏦 Waiting for Wire',
+    'wire_received': '✅ Wire Received',
+    'pending': '📋 Awaiting Pickup',
+    'courier_assigned': '👤 Courier Assigned',
+    'picked_up': '📦 Picked Up',
+    'in_transit': '🚚 In Transit',
+    'out_for_delivery': '🏃 Out for Delivery',
+    'delivered': '✅ Delivered',
+    'cancelled': '❌ Cancelled'
   };
   
   document.getElementById('allPackages').innerHTML = packages.map(p => `
@@ -662,8 +650,8 @@ function loadPackages() {
       <td class="mono">${p.trackingId}</td>
       <td>${p.sender}</td>
       <td>${p.recipient}</td>
-      <td><span class="badge ${p.status}">${statusLabels[p.status]}</span></td>
-      <td>${p.courier.name}</td>
+      <td><span class="badge ${p.status}">${statusLabels[p.status] || p.status}</span></td>
+      <td>${p.courier?.name || 'N/A'}</td>
       <td>
         <button class="btn btn-sm btn-primary" onclick="editPackage('${p.trackingId}')">✏️ Edit</button>
         <a href="tracking.html?id=${p.trackingId}" class="btn btn-sm btn-outline" style="margin-left:4px;">📍 Track</a>
@@ -676,84 +664,60 @@ function loadPackages() {
 let editingPackageId = null;
 
 function editPackage(trackingId) {
-  const data = getData();
-  const pkg = data.packages[trackingId];
+  const pkg = appData.packages[trackingId];
   if (!pkg) return;
   
   editingPackageId = trackingId;
   
   document.getElementById('edit-trackingId').value = pkg.trackingId;
   document.getElementById('edit-status').value = pkg.status;
-  document.getElementById('edit-sender').value = pkg.sender;
-  document.getElementById('edit-recipient').value = pkg.recipient;
-  document.getElementById('edit-courier').value = pkg.courier.name;
-  document.getElementById('edit-courierPhone').value = pkg.courier.phone;
+  document.getElementById('edit-sender').value = pkg.sender || '';
+  document.getElementById('edit-recipient').value = pkg.recipient || '';
+  document.getElementById('edit-courier').value = pkg.courier?.name || '';
+  document.getElementById('edit-courierPhone').value = pkg.courier?.phone || '';
   document.getElementById('edit-amount').value = pkg.amount || 0;
-  document.getElementById('edit-location').value = pkg.currentLocation.address || `${pkg.currentLocation.lat}, ${pkg.currentLocation.lng}`;
+  document.getElementById('edit-location').value = pkg.currentLocation?.address || '';
   document.getElementById('edit-newLocation').value = '';
   
   document.getElementById('editPackageForm').style.display = 'block';
   document.getElementById('editPackageForm').scrollIntoView({ behavior: 'smooth' });
 }
 
-function savePackage() {
+async function savePackage() {
   if (!editingPackageId) return;
   
-  const data = getData();
-  const pkg = data.packages[editingPackageId];
+  const pkg = appData.packages[editingPackageId];
   
-  // Update package fields
   pkg.status = document.getElementById('edit-status').value;
   pkg.sender = document.getElementById('edit-sender').value;
   pkg.recipient = document.getElementById('edit-recipient').value;
+  if (!pkg.courier) pkg.courier = { name: '', phone: '', rating: 0, photo: 'PA' };
   pkg.courier.name = document.getElementById('edit-courier').value;
   pkg.courier.phone = document.getElementById('edit-courierPhone').value;
   pkg.amount = parseFloat(document.getElementById('edit-amount').value) || 0;
   
-  // Update location (now supports addresses)
   const locStr = document.getElementById('edit-location').value.trim();
   if (locStr) {
-    // Check if it's coordinates (contains comma and numbers)
-    const coordMatch = locStr.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
-    if (coordMatch) {
-      const lat = parseFloat(coordMatch[1]);
-      const lng = parseFloat(coordMatch[2]);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        pkg.currentLocation = { lat, lng, address: locStr, updatedAt: new Date().toISOString() };
-      }
-    } else {
-      // It's an address - keep existing coordinates but update address
-      pkg.currentLocation.address = locStr;
-      pkg.currentLocation.updatedAt = new Date().toISOString();
-    }
+    if (!pkg.currentLocation) pkg.currentLocation = {};
+    pkg.currentLocation.address = locStr;
+    pkg.currentLocation.updatedAt = new Date().toISOString();
   }
   
-  // Add new location update if provided
   const newLocDesc = document.getElementById('edit-newLocation').value.trim();
   if (newLocDesc) {
-    const statusLabels = {
-      'pending': 'Awaiting Pickup',
-      'picked_up': 'Picked Up',
-      'in_transit': 'In Transit',
-      'out_for_delivery': 'Out for Delivery',
-      'delivered': 'Delivered',
-      'cancelled': 'Cancelled'
-    };
-    
+    if (!pkg.locations) pkg.locations = [];
     pkg.locations.push({
-      status: statusLabels[pkg.status],
+      status: document.getElementById('edit-status').options[document.getElementById('edit-status').selectedIndex].text.replace(/^[^\s]+\s/, ''),
       timestamp: new Date().toISOString(),
-      lat: pkg.currentLocation.lat,
-      lng: pkg.currentLocation.lng,
-      address: newLocDesc.split('-')[0]?.trim() || 'Location Update',
+      lat: pkg.currentLocation?.lat || 40.7128,
+      lng: pkg.currentLocation?.lng || -74.0060,
+      address: pkg.currentLocation?.address || 'Location Update',
       description: newLocDesc
     });
   }
   
-  // Save
-  saveToApiFile(data);
+  await saveToJSONBin();
   
-  // Refresh
   loadPackages();
   document.getElementById('editPackageForm').style.display = 'none';
   editingPackageId = null;
@@ -763,8 +727,7 @@ function savePackage() {
 
 // ── WIRE INFORMATION ──
 function loadWireInfo() {
-  const data = getData();
-  const w = data.wireInfo;
+  const w = appData.wireInfo || {};
   
   document.getElementById('wire-bankName').value = w.bankName || '';
   document.getElementById('wire-accountName').value = w.accountName || '';
@@ -778,10 +741,8 @@ function loadWireInfo() {
   document.getElementById('wire-usdt').value = w.usdt || '';
 }
 
-function saveWireInfo() {
-  const data = getData();
-  
-  data.wireInfo = {
+async function saveWireInfo() {
+  appData.wireInfo = {
     bankName: document.getElementById('wire-bankName').value,
     accountName: document.getElementById('wire-accountName').value,
     accountNumber: document.getElementById('wire-accountNumber').value,
@@ -794,7 +755,7 @@ function saveWireInfo() {
     usdt: document.getElementById('wire-usdt').value
   };
   
-  saveToApiFile(data);
+  await saveToJSONBin();
   
   const successMsg = document.getElementById('wireSuccess');
   successMsg.classList.add('show');
@@ -802,8 +763,11 @@ function saveWireInfo() {
 }
 
 // ── INIT ──
-loadDashboard();
-loadWireInfo();
+(async function() {
+  await loadFromJSONBin();
+  loadDashboard();
+  loadWireInfo();
+})();
 </script>
 </body>
 </html>

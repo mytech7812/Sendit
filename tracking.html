@@ -337,21 +337,44 @@ async function loadTrackingData(id, silent = false) {
     document.getElementById('app').innerHTML = '<div class="loading"><div style="font-size:32px;margin-bottom:12px;">📍</div>Loading tracking information...</div>';
   }
   
+  const BIN_ID = '69ff3c24c0954111d8fbf348';
+  const MASTER_KEY = '$2a$10$cPZxyG.c32PPYr.xHYwpuuXTyM.DuXPzWnKFg8zo3A2lKfzNaEu6i';
+  
   try {
-    // Check localStorage first (for newly generated codes)
     let pkg = null;
-    const savedData = localStorage.getItem('sendit_admin_data');
     
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData);
+    // Method 1: JSONBin (main data source)
+    try {
+      const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': MASTER_KEY }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        const data = result.record;
         if (data.packages && data.packages[id]) {
           pkg = data.packages[id];
+          console.log('✅ Tracking: Found in JSONBin');
         }
-      } catch(e) {}
+      }
+    } catch(e) {
+      console.error('JSONBin fetch error:', e);
     }
     
-    // Fallback to JSON file
+    // Method 2: localStorage fallback
+    if (!pkg) {
+      const savedData = localStorage.getItem('sendit_admin_data');
+      if (savedData) {
+        try {
+          const data = JSON.parse(savedData);
+          if (data.packages && data.packages[id]) {
+            pkg = data.packages[id];
+            console.log('✅ Tracking: Found in localStorage');
+          }
+        } catch(e) {}
+      }
+    }
+    
+    // Method 3: JSON file fallback
     if (!pkg) {
       try {
         const response = await fetch('api/data.json');
@@ -359,6 +382,7 @@ async function loadTrackingData(id, silent = false) {
           const data = await response.json();
           if (data.packages && data.packages[id]) {
             pkg = data.packages[id];
+            console.log('✅ Tracking: Found in JSON file');
           }
         }
       } catch(e) {}
