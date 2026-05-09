@@ -1893,35 +1893,44 @@ mapboxgl.accessToken = 'pk.eyJ1IjoidGVjaDc4MTIiLCJhIjoiY21veTRtdHowMGhndjJyc2RyM
     
     // ── LOOK UP PACKAGE ──
     let pkg = null;
+    const BIN_ID = '69ff3c24c0954111d8fbf348';
+    const MASTER_KEY = '$2a$10$cPZxyG.c32PPYr.xHYwpuuXTyM.DuXPzWnKFg8zo3A2lKfzNaEu6i';
     
-    // Method 1: Check localStorage (where generated codes are saved)
-    const savedData = localStorage.getItem('sendit_admin_data');
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData);
+    // Method 1: JSONBin
+    try {
+      const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': MASTER_KEY }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        const data = result.record;
         if (data.packages && data.packages[val]) {
           pkg = data.packages[val];
-          console.log('✅ Found in localStorage:', pkg.trackingId);
+          console.log('✅ Found in JSONBin:', pkg.trackingId);
         }
-      } catch(e) {
-        console.error('Error reading localStorage:', e);
+      }
+    } catch(e) {}
+    
+    // Method 2: localStorage fallback
+    if (!pkg) {
+      const savedData = localStorage.getItem('sendit_admin_data');
+      if (savedData) {
+        try {
+          const data = JSON.parse(savedData);
+          if (data.packages && data.packages[val]) pkg = data.packages[val];
+        } catch(e) {}
       }
     }
     
-    // Method 2: Fallback to JSON file
+    // Method 3: JSON file fallback
     if (!pkg) {
       try {
         const response = await fetch('api/data.json');
         if (response.ok) {
           const data = await response.json();
-          if (data.packages && data.packages[val]) {
-            pkg = data.packages[val];
-            console.log('✅ Found in JSON file:', pkg.trackingId);
-          }
+          if (data.packages && data.packages[val]) pkg = data.packages[val];
         }
-      } catch(e) {
-        console.error('Error fetching JSON:', e);
-      }
+      } catch(e) {}
     }
     
     // ── NOT FOUND ──
@@ -2518,41 +2527,41 @@ function openModal(id) {
     }
   }
   
-  /* ── Save new package to admin data store ── */
-  function savePackageToAdmin(pkg) {
-    // Get existing data from localStorage
-    let data = { packages: {}, wireInfo: {} };
-    const savedData = localStorage.getItem('sendit_admin_data');
+  /* ── Save new package to JSONBin ── */
+  async function savePackageToAdmin(pkg) {
+    const BIN_ID = '69ff3c24c0954111d8fbf348';
+    const MASTER_KEY = '$2a$10$cPZxyG.c32PPYr.xHYwpuuXTyM.DuXPzWnKFg8zo3A2lKfzNaEu6i';
     
-    if (savedData) {
-      try {
-        data = JSON.parse(savedData);
-      } catch(e) {
-        console.error('Error parsing existing data:', e);
-        data = { packages: {}, wireInfo: {} };
-      }
+    try {
+      const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': MASTER_KEY }
+      });
+      const result = await response.json();
+      let data = result.record;
+      if (!data.packages) data.packages = {};
+      if (!data.wireInfo) data.wireInfo = {};
+      data.packages[pkg.trackingId] = pkg;
+      
+      await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': MASTER_KEY
+        },
+        body: JSON.stringify(data)
+      });
+      
+      console.log('✅ Saved to JSONBin:', pkg.trackingId);
+      localStorage.setItem('sendit_admin_data', JSON.stringify(data));
+    } catch (error) {
+      console.error('JSONBin save failed, using localStorage:', error);
+      let data = { packages: {}, wireInfo: {} };
+      const savedData = localStorage.getItem('sendit_admin_data');
+      if (savedData) { try { data = JSON.parse(savedData); } catch(e) {} }
+      if (!data.packages) data.packages = {};
+      data.packages[pkg.trackingId] = pkg;
+      localStorage.setItem('sendit_admin_data', JSON.stringify(data));
     }
-    
-    // Initialize packages if it doesn't exist
-    if (!data.packages) {
-      data.packages = {};
-    }
-    
-    // Add new package
-    data.packages[pkg.trackingId] = pkg;
-    
-    // Save back to localStorage
-    localStorage.setItem('sendit_admin_data', JSON.stringify(data));
-    
-    // Verify it saved
-    const verify = localStorage.getItem('sendit_admin_data');
-    const verified = verify ? JSON.parse(verify) : {};
-    
-    console.log('✅ Package saved to localStorage!');
-    console.log('📦 Tracking ID:', pkg.trackingId);
-    console.log('📊 Status:', pkg.status);
-    console.log('📋 Total packages in storage:', Object.keys(verified.packages || {}).length);
-    console.log('🔑 All tracking IDs:', Object.keys(verified.packages || {}));
   }
   /* ── COPY TRACKING CODE ── */
   function copyCode(elId) {
@@ -2571,21 +2580,36 @@ function openModal(id) {
     const body = document.getElementById('wireModalBody');
     
     try {
-      // Try to load from localStorage first (admin panel saves there)
+      const BIN_ID = '69ff3c24c0954111d8fbf348';
+      const MASTER_KEY = '$2a$10$cPZxyG.c32PPYr.xHYwpuuXTyM.DuXPzWnKFg8zo3A2lKfzNaEu6i';
       let wireInfo = null;
-      const savedData = localStorage.getItem('sendit_admin_data');
-      if (savedData) {
-        const data = JSON.parse(savedData);
-        wireInfo = data.wireInfo;
+      
+      // Method 1: JSONBin
+      try {
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+          headers: { 'X-Master-Key': MASTER_KEY }
+        });
+        if (response.ok) {
+          const result = await response.json();
+          wireInfo = result.record.wireInfo;
+        }
+      } catch(e) {}
+      
+      // Method 2: localStorage fallback
+      if (!wireInfo) {
+        const savedData = localStorage.getItem('sendit_admin_data');
+        if (savedData) {
+          const data = JSON.parse(savedData);
+          wireInfo = data.wireInfo;
+        }
       }
       
-      // Fallback to API file
+      // Method 3: API file fallback
       if (!wireInfo) {
         const response = await fetch('api/data.json');
         const data = await response.json();
         wireInfo = data.wireInfo;
       }
-      
       if (wireInfo) {
         body.innerHTML = `
           <div class="form-section-label">Bank Wire Transfer</div>
