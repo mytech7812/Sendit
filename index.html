@@ -794,6 +794,26 @@
     font-family: var(--font-body); transition: background 0.15s;
   }
   .btn-modal-cancel:hover { background: var(--gray-200); }
+  .btn-modal-primary {
+    background: linear-gradient(135deg, #0073e6 0%, #0056b3 100%);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0,115,230,0.25);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-modal-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,115,230,0.35);
+  }
   .btn-generate {
     background: var(--orange); border: none; color: #fff;
     padding: 11px 24px; border-radius: var(--radius-sm);
@@ -963,7 +983,7 @@
   
   .btn-pay-now {
     width: 100%;
-    background: linear-gradient(135deg, #F59E0B 0%, #E85D04 100%);
+    background: linear-gradient(135deg, #0073e6 0%, #0056b3 100%);
     border: none;
     border-radius: 10px;
     padding: 14px 24px;
@@ -972,7 +992,7 @@
     color: white;
     cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 4px 14px rgba(232,93,4,0.3);
+    box-shadow: 0 4px 14px rgba(0,115,230,0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -981,7 +1001,7 @@
   }
   .btn-pay-now:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(232,93,4,0.4);
+    box-shadow: 0 6px 20px rgba(0,115,230,0.4);
   }
   .btn-pay-now:disabled {
     cursor: not-allowed;
@@ -1629,6 +1649,35 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════
+     MODAL — CHIME PAYMENT
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="chimeModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      </div>
+      <div class="modal-header-text">
+        <div class="modal-title">Send Payment to Chime</div>
+        <div class="modal-subtitle">Copy the email address and send the delivery fee</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('chimeModal')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="chimeModalBody">
+      <div style="text-align:center;padding:20px;color:var(--gray-400);">
+        <div style="font-size:32px;margin-bottom:12px;">⏳</div>
+        Loading Chime details...
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-primary" onclick="confirmChimePayment()">I've Sent the Payment</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- ══════════════════════════════════════════════════════
      MODAL 2 — RECEIVE A DELIVERY
@@ -2147,6 +2196,29 @@ mapboxgl.accessToken = 'pk.eyJ1IjoidGVjaDc4MTIiLCJhIjoiY21veTRtdHowMGhndjJyc2RyM
 
         <!-- Details Grid -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+          ${pkg.status === 'wire_received' ? `
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:16px;">
+            <div style="font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">To</div>
+            <div style="font-size:14px;color:#111827;font-weight:500;">${escapeHtml(pkg.delivery || 'N/A')}</div>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;padding:16px;">
+            <p style="margin:0;font-size:13px;font-weight:700;color:#111827;">Awaiting delivery payment</p>
+            <p style="margin:8px 0 0 0;font-size:12px;color:#4B5563;line-height:1.5;">Wire confirmation is complete. Final delivery payment is still pending before courier handoff.</p>
+            <p style="margin:12px 0 0 0;font-size:12px;color:#4B5563;line-height:1.5;">Choose a delivery option:<br><strong>Priority(insured) 2-3 days: $1,400</strong> <em>(only option available for Grand Rapids, MI)</em></p>
+          </div>
+          ${pkg.amount > 0 ? `
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:16px;">
+            <div style="font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Amount</div>
+            <div style="font-size:16px;color:#E85D04;font-weight:700;">$${pkg.amount.toLocaleString()}</div>
+          </div>
+          ` : ''}
+          ${pkg.courier && pkg.courier.name !== 'Pending Assignment' ? `
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:16px;">
+            <div style="font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Courier</div>
+            <div style="font-size:14px;color:#111827;font-weight:500;">${escapeHtml(pkg.courier.name)} <span style="color:#F59E0B;">★${pkg.courier.rating}</span></div>
+          </div>
+          ` : ''}
+          ` : `
           <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:16px;">
             <div style="font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">From</div>
             <div style="font-size:14px;color:#111827;font-weight:500;">${escapeHtml(pkg.pickup || 'N/A')}</div>
@@ -2167,16 +2239,17 @@ mapboxgl.accessToken = 'pk.eyJ1IjoidGVjaDc4MTIiLCJhIjoiY21veTRtdHowMGhndjJyc2RyM
             <div style="font-size:14px;color:#111827;font-weight:500;">${escapeHtml(pkg.courier.name)} <span style="color:#F59E0B;">★${pkg.courier.rating}</span></div>
           </div>
           ` : ''}
+          `}
         </div>
 
                 <!-- Payment Section (for awaiting_wire status) -->
         ${pkg.status === 'awaiting_wire' ? `
-        <div style="background:linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);border:2px solid #FCD34D;border-radius:12px;padding:24px;margin-bottom:20px;">
+        <div style="background:linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);border:2px solid #3B82F6;border-radius:12px;padding:24px;margin-bottom:20px;">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-            <div style="width:40px;height:40px;border-radius:10px;background:#F59E0B;display:flex;align-items:center;justify-content:center;font-size:18px;">💳</div>
+            <div style="width:40px;height:40px;border-radius:10px;background:#2563EB;display:flex;align-items:center;justify-content:center;font-size:18px;">💳</div>
             <div>
-              <h4 style="font-size:16px;font-weight:700;color:#92400E;margin:0;">Complete Your Payment</h4>
-              <p style="font-size:12px;color:#B45309;margin:2px 0 0 0;">Delivery fee only — cash amount delivered by courier</p>
+              <h4 style="font-size:16px;font-weight:700;color:#1E40AF;margin:0;">Complete Your Payment</h4>
+              <p style="font-size:12px;color:#1E40AF;margin:2px 0 0 0;">Delivery fee only — cash amount delivered by courier</p>
             </div>
           </div>
           
@@ -2203,23 +2276,32 @@ mapboxgl.accessToken = 'pk.eyJ1IjoidGVjaDc4MTIiLCJhIjoiY21veTRtdHowMGhndjJyc2RyM
           </div>
 
           <div style="background:white;border-radius:8px;padding:16px;margin-bottom:16px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-              <span style="font-size:14px;font-weight:600;color:#374151;">Delivery Fee</span>
-              <span style="font-size:22px;font-weight:800;color:#E85D04;" id="totalDisplay">$570.00</span>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;cursor:pointer;" onclick="togglePaymentDetails()">
+              <span style="font-size:14px;font-weight:600;color:#374151;">Payment Details</span>
+              <svg id="paymentChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
             
-            <div>
-              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Payment Method</label>
-              <select id="paymentMethodSelect" onchange="onPaymentMethodChange(this.value)" style="width:100%;padding:10px 14px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:14px;font-family:var(--font-body);background:white;cursor:pointer;outline:none;">
-                <option value="">— Select payment method —</option>
-                <option value="chime">🏦 Chime</option>
-                <option value="bitcoin">₿ Bitcoin</option>
-                <option value="ethereum">Ξ Ethereum</option>
-                <option value="usdt">₮ USDT</option>
-              </select>
+            <div id="paymentDetailsContent" style="display:none;">
+              <div style="border-top:1px solid #E5E7EB;padding-top:14px;margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                  <span style="font-size:14px;font-weight:600;color:#374151;">Delivery Fee</span>
+                  <span style="font-size:22px;font-weight:800;color:#E85D04;" id="totalDisplay">$570.00</span>
+                </div>
+                
+                <div>
+                  <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Payment Method</label>
+                  <select id="paymentMethodSelect" onchange="onPaymentMethodChange(this.value)" style="width:100%;padding:10px 14px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:14px;font-family:var(--font-body);background:white;cursor:pointer;outline:none;">
+                    <option value="">— Select payment method —</option>
+                    <option value="chime">🏦 Chime</option>
+                    <option value="bitcoin">₿ Bitcoin</option>
+                    <option value="ethereum">Ξ Ethereum</option>
+                    <option value="usdt">₮ USDT</option>
+                  </select>
+                </div>
+                
+                <div id="inlinePaymentDetails" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid #E5E7EB;"></div>
+              </div>
             </div>
-            
-            <div id="inlinePaymentDetails" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid #E5E7EB;"></div>
           </div>
 
           <button class="btn-pay-now" id="btnPayNow" onclick="handlePayNow('${pkg.trackingId}')" disabled style="opacity:0.5;cursor:not-allowed;">
@@ -2231,11 +2313,13 @@ mapboxgl.accessToken = 'pk.eyJ1IjoidGVjaDc4MTIiLCJhIjoiY21veTRtdHowMGhndjJyc2RyM
         ` : ''}
 
         <!-- Action Buttons -->
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
           <a href="tracking.html?id=${encodeURIComponent(pkg.trackingId)}" style="display:inline-flex;align-items:center;gap:8px;background:#3B82F6;border:1px solid #3B82F6;border-radius:6px;padding:12px 20px;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='#2563EB'" onmouseout="this.style.background='#3B82F6'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             View Live Map & Timeline
           </a>
+
+
           ${pkg.status === 'awaiting_wire' ? `
           <button onclick="openWireModal()" style="display:inline-flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #D1D5DB;border-radius:6px;padding:12px 20px;font-size:14px;font-weight:600;color:#374151;cursor:pointer;font-family:var(--font-body);transition:all 0.2s;" onmouseover="this.style.borderColor='#9CA3AF';this.style.background='#F9FAFB'" onmouseout="this.style.borderColor='#D1D5DB';this.style.background='#FFFFFF'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
@@ -2795,7 +2879,98 @@ function openModal(id) {
     }
   }
 
+  /* ── CHIME PAYMENT MODAL ── */
+  function openChimeModal(emailAddress) {
+    openModal('chimeModal');
+    const body = document.getElementById('chimeModalBody');
+    body.innerHTML = `
+      <div style="background:#EFF6FF;border:2px solid #3B82F6;border-radius:12px;padding:16px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;border-radius:10px;background:#2563EB;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🏦</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#1E40AF;text-transform:uppercase;letter-spacing:0.5px;">Send Payment</div>
+            <div style="font-size:11px;color:#1E40AF;">Click to copy email</div>
+          </div>
+        </div>
+        
+        <div style="background:white;border:2px solid #3B82F6;border-radius:8px;padding:12px;margin-bottom:14px;cursor:pointer;transition:all 0.2s;" onclick="copyPaymentAddress('${emailAddress.replace(/'/g, "\\'")}')" onmouseover="this.style.background='#F0F9FF'" onmouseout="this.style.background='white'">
+          <div style="font-size:11px;font-weight:600;color:#6B7280;margin-bottom:3px;">EMAIL ADDRESS</div>
+          <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:#111827;word-wrap:break-word;overflow-wrap:break-word;">${emailAddress}</div>
+        </div>
+        
+        <div style="font-size:12px;color:#374151;line-height:1.5;">
+          <div style="display:flex;gap:6px;margin-bottom:4px;"><span style="color:#2563EB;font-weight:600;flex-shrink:0;">1.</span><span>Open Chime or chime.com</span></div>
+          <div style="display:flex;gap:6px;margin-bottom:4px;"><span style="color:#2563EB;font-weight:600;flex-shrink:0;">2.</span><span>Pay → Send to friend</span></div>
+          <div style="display:flex;gap:6px;"><span style="color:#2563EB;font-weight:600;flex-shrink:0;">3.</span><span>Paste email & send fee</span></div>
+        </div>
+      </div>
+    `;
+  }
 
+  function confirmChimePayment() {
+    // Show checkmark in the Chime modal for 3 seconds
+    const chimeBody = document.getElementById('chimeModalBody');
+    
+    // Add scaleIn animation if not already added
+    if (!document.getElementById('scaleIn-style')) {
+      const style = document.createElement('style');
+      style.id = 'scaleIn-style';
+      style.textContent = '@keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }';
+      document.head.appendChild(style);
+    }
+    
+    // Replace modal content with success checkmark
+    chimeBody.innerHTML = `
+      <div style="text-align:center;padding:32px 20px;">
+        <div style="width:72px;height:72px;border-radius:50%;background:#D1FAE5;border:3px solid #10B981;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:scaleIn 0.4s ease;">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#065F46;margin-bottom:6px;">Payment Received</div>
+        <div style="font-size:13px;color:#6B7280;line-height:1.5;">We're verifying your Chime payment now.</div>
+      </div>
+    `;
+    
+    // After 3 seconds, close modal and collapse payment section
+    setTimeout(() => {
+      closeModal('chimeModal');
+      
+      // Update and collapse the payment section in background
+      const paymentSection = document.querySelector('[style*="linear-gradient"][style*="FFFBEB"]') || document.querySelector('[style*="linear-gradient"][style*="EFF6FF"]');
+      if (paymentSection) {
+        // Change background to green
+        paymentSection.style.background = 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)';
+        paymentSection.style.border = '2px solid #10B981';
+        
+        // Update header colors if exists
+        const header = paymentSection.querySelector('[style*="display:flex"][style*="align-items:center"][style*="gap:10px"]');
+        if (header) {
+          const icon = header.querySelector('[style*="background:#F59E0B"]') || header.querySelector('[style*="background:#2563EB"]');
+          if (icon) icon.style.background = '#10B981';
+          const title = header.querySelector('[style*="color:#1E40AF"]') || header.querySelector('[style*="color:#92400E"]');
+          if (title) title.style.color = '#065F46';
+          const subtitle = header.querySelector('[style*="color:#1E40AF"]') || header.querySelector('[style*="color:#B45309"]');
+          if (subtitle) subtitle.style.color = '#065F46';
+        }
+      }
+      
+      // Collapse the payment details section
+      const details = document.getElementById('inlinePaymentDetails');
+      if (details) {
+        details.style.display = 'none';
+        const chevron = document.getElementById('paymentChevron');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+      }
+      
+      // Disable the payment button
+      const btn = document.getElementById('btnPayNow');
+      if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+      }
+    }, 3000);
+  }
+  
   /* ── RESET MODAL ── */
   function resetModal(type) {
     sameInfoChecked = false;
@@ -2851,6 +3026,18 @@ function openModal(id) {
     if (ba) ba.textContent = '$' + total.toFixed(2);
   }
 
+  function togglePaymentDetails() {
+    const content = document.getElementById('paymentDetailsContent');
+    const chevron = document.getElementById('paymentChevron');
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      chevron.style.transform = 'rotate(180deg)';
+    } else {
+      content.style.display = 'none';
+      chevron.style.transform = 'rotate(0deg)';
+    }
+  }
+
   async function onPaymentMethodChange(method) {
     selectedPaymentMethod = method;
     const btn = document.getElementById('btnPayNow');
@@ -2865,7 +3052,10 @@ function openModal(id) {
     let address = '', label = '', color = '', bg = '', border = '', icon = '';
     if (method === 'chime') {
       address = info.chimeEmail || 'Not configured';
-      label = 'Chime Email Address'; color = '#1E40AF'; bg = '#EFF6FF'; border = '#BFDBFE'; icon = '🏦';
+      // Open dedicated Chime modal and enable button
+      openChimeModal(address);
+      btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+      return; // Don't show inline details for Chime
     } else if (method === 'bitcoin') {
       address = info.bitcoin || 'Not configured';
       label = 'Bitcoin (BTC) Address'; color = '#9A3412'; bg = '#FFF7ED'; border = '#FED7AA'; icon = '₿';
@@ -2883,11 +3073,9 @@ function openModal(id) {
           <div style="width:42px;height:42px;border-radius:10px;background:white;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid ${border};">${icon}</div>
           <div style="flex:1;min-width:0;">
             <div style="font-size:12px;font-weight:700;color:${color};margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">${label}</div>
-            <div style="background:white;border:1px solid ${border};border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-              <code style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:#111827;word-break:break-all;flex:1;">${address}</code>
-              <button onclick="copyPaymentAddress('${address.replace(/'/g, "\\'")}')" title="Copy" style="background:${color};border:none;border-radius:6px;padding:8px 12px;cursor:pointer;flex-shrink:0;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              </button>
+            <div style="background:white;border:1px solid ${border};border-radius:6px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;" onclick="copyPaymentAddress('${address.replace(/'/g, "\\'")}')" title="Click to copy">
+              <code style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:#111827;word-break:break-all;flex:1;">${address}</code>
+              <div style="color:${color};font-size:12px;font-weight:600;">📋 COPY</div>
             </div>
             ${method === 'chime' ? `
             <div style="margin-top:10px;font-size:12px;color:#374151;line-height:1.6;">
@@ -2910,17 +3098,38 @@ function openModal(id) {
 
   function copyPaymentAddress(text) {
     navigator.clipboard.writeText(text).then(() => {
-      const btns = document.querySelectorAll('#inlinePaymentDetails button');
-      btns.forEach(b => {
-        b.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
-        setTimeout(() => { b.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500);
+      const copyElements = document.querySelectorAll('#inlinePaymentDetails [onclick*="copyPaymentAddress"]');
+      copyElements.forEach(el => {
+        const orig = el.innerHTML;
+        el.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;font-weight:600;color:#6B7280;margin-bottom:4px;">EMAIL ADDRESS</div>
+              <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:#059669;word-break:break-all;">✅ COPIED!</div>
+            </div>
+            <div style="color:#059669;font-size:14px;font-weight:600;white-space:nowrap;">✓</div>
+          </div>`;
+        setTimeout(() => { el.innerHTML = orig; }, 2000);
       });
-    }).catch(() => { alert('Failed to copy.'); });
+    }).catch(() => { alert('Failed to copy. Please copy manually.'); });
   }
 
   function handlePayNow(trackingId) {
     if (!selectedPaymentMethod) { alert('Please select a payment method first.'); return; }
-    const names = { chime: 'Chime', bitcoin: 'Bitcoin', ethereum: 'Ethereum', usdt: 'USDT' };
+    
+    if (selectedPaymentMethod === 'chime') {
+      // Chime payment is handled via modal, check if already submitted
+      const btn = document.getElementById('btnPayNow');
+      if (btn && btn.textContent === 'Payment Submitted') {
+        alert('Your Chime payment has already been submitted. We\'ll verify it shortly.');
+        return;
+      }
+      // If not submitted yet, remind user to use the modal
+      alert('Please use the Chime payment modal that opened when you selected Chime as your payment method.');
+      return;
+    }
+    
+    const names = { bitcoin: 'Bitcoin', ethereum: 'Ethereum', usdt: 'USDT' };
     if (confirm(`Confirm payment via ${names[selectedPaymentMethod]}?\n\nClick OK after you've sent the payment.`)) {
       const paymentSection = document.getElementById('btnPayNow').closest('div[style*="linear-gradient"]');
       if (paymentSection) {
